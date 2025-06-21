@@ -14,7 +14,7 @@ const SnippetsContext = createContext();
 
 export const SnippetsProvider = ({ children }) => {
   const { closeModal } = useGlobalContext();
-  const serverUrl = "http://localhost:8000/api/v1";
+  const serverUrl = "https://snippet-master-harsh810.onrender.com/api/v1";
 
   const userId = useUserContext().user?._id;
 
