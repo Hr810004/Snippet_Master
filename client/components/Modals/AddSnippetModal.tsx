@@ -125,7 +125,7 @@ function AddSnippetModal() {
     <div className="fixed top-0 left-0 z-40 h-full w-full bg-[#000]/30 backdrop-blur-sm bg-opacity-50 overflow-hidden">
       <div
         ref={ref}
-        className="py-5 px-6 bg-3 max-w-[920px] w-full flex flex-col gap-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg shadow-md"
+        className="max-h-[90vh] overflow-y-auto py-5 px-6 bg-3 max-w-[920px] w-full flex flex-col gap-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg shadow-md"
       >
         <form action="" className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <h1 className="text-white text-3xl font-bold">

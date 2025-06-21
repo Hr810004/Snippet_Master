@@ -180,7 +180,7 @@ function Sidebar() {
             </ul>
             <p className="text-center text-sm mt-4">
               &copy; {new Date().getFullYear()}{" "}
-              <Link href={"/"}>TheCodeDealer</Link>. All&nbsp;rights reserved.
+              <Link href={"https://harsh810.vercel.app"}>Harsh810</Link>. All&nbsp;rights reserved.
             </p>
           </footer>
         )}
