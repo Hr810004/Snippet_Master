@@ -230,29 +230,42 @@ function AddSnippetModal() {
 
           {/* Tags Section */}
           <div>
-            <label className="block text-white font-semibold mb-3">Tags</label>
-            <div className="flex flex-wrap gap-3 p-4 bg-1 rounded-lg border-2 border-rgba-3 min-h-[60px]">
-              {tags.length > 0 ? (
+            <label className="block text-white font-semibold mb-3">
+              Tags {tags.length > 0 && `(${tags.length} available)`}
+            </label>
+            <div className="flex flex-wrap gap-3 p-4 bg-1 rounded-lg border-2 border-rgba-3 min-h-[80px]">
+              {tags && tags.length > 0 ? (
                 tags.map((tag: ITag, index: number) => (
-                  <Button
-                    key={index}
+                  <button
+                    key={tag._id || index}
                     type="button"
-                    className={`py-2 px-4 text-white text-sm rounded-lg transition-all duration-300 hover:scale-105 ${
+                    className={`py-2 px-4 text-white text-sm rounded-lg transition-all duration-300 hover:scale-105 cursor-pointer border ${
                       activeTags.some((activeTag: any) => activeTag._id === tag._id)
-                        ? 'bg-gradient-to-r from-[#7263F3] to-[#6BBE92] shadow-lg'
-                        : 'bg-rgba-3 hover:bg-rgba-2'
+                        ? 'bg-gradient-to-r from-[#7263F3] to-[#6BBE92] shadow-lg border-[#7263F3]'
+                        : 'bg-gray-700 hover:bg-gray-600 border-gray-600'
                     }`}
                     onClick={() => handleTags(tag)}
                   >
                     {tag.name}
-                  </Button>
+                  </button>
                 ))
               ) : (
-                <p className="text-gray-500 italic">No tags available</p>
+                <div className="flex flex-col items-center justify-center w-full text-center">
+                  <div className="w-12 h-12 bg-rgba-3 rounded-full flex items-center justify-center mb-2">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 italic">Loading tags...</p>
+                  <p className="text-gray-600 text-xs mt-1">Tags will appear here once loaded</p>
+                </div>
               )}
             </div>
             <p className="text-gray-400 text-sm mt-2">
-              Select relevant tags to help others discover your snippet
+              {tags && tags.length > 0 
+                ? "Select relevant tags to help others discover your snippet"
+                : "Tags are being loaded from the server..."
+              }
             </p>
           </div>
 
