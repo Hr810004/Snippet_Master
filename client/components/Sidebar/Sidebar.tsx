@@ -11,7 +11,7 @@ import {
   home,
   users,
 } from "@/utils/Icons";
-import { FaExchangeAlt } from "react-icons/fa";
+import { FaExchangeAlt, FaRobot } from "react-icons/fa";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -38,6 +38,12 @@ function Sidebar() {
       name: isSidebarOpen ? "Converter" : "",
       url: "/converter",
       icon: <FaExchangeAlt />,
+    },
+    {
+      id: 3,
+      name: isSidebarOpen ? "AI Tools" : "",
+      url: "/ai-tools",
+      icon: <FaRobot />,
     },
     {
       id: 4,

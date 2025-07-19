@@ -44,22 +44,20 @@ function Header() {
       </div>
 
       {!user._id ? (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
-            className="btn-hover relative h-[47px] px-8 bg-[#3A3B3C] flex items-center justify-center gap-4 rounded-xl overflow-hidden"
+            className="relative h-[42px] px-6 bg-transparent border-2 border-[#7263F3] text-[#7263F3] flex items-center justify-center gap-2 rounded-lg font-semibold hover:bg-[#7263F3] hover:text-white transition-all duration-300 ease-in-out group"
             onClick={() => router.push("/login")}
           >
-            <span className="text-xl text-gray-200">{login}</span>
-            <span className="font-bold text-white">Login</span>
-            <div className="blob"></div>
+            <span className="text-lg group-hover:scale-110 transition-transform duration-300">{login}</span>
+            <span>Login</span>
           </button>
           <button
-            className="btn-hover relative h-[47px] px-8 bg-[#7263F3] flex items-center justify-center gap-4 rounded-xl overflow-hidden"
+            className="relative h-[42px] px-6 bg-gradient-to-r from-[#7263F3] to-[#6BBE92] text-white flex items-center justify-center gap-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#7263F3]/25 hover:scale-105 transition-all duration-300 ease-in-out group"
             onClick={() => router.push("/register")}
           >
-            <span className="text-xl text-gray-200">{register}</span>
-            <span className="font-bold text-white">Register</span>
-            <div className="blob"></div>
+            <span className="text-lg group-hover:rotate-12 transition-transform duration-300">{register}</span>
+            <span>Get Started</span>
           </button>
         </div>
       ) : (

@@ -34,32 +34,47 @@ function page() {
   };
 
   return (
-    <main className="h-[90vh] relative flex justify-center items-center">
-      <form
-        action=""
-        className="u-shadow-2 px-8 mx-8 my-8 py-6 bg-1 rounded-lg max-w-[1200px] w-full"
-        onSubmit={(e) => {
-          e.preventDefault();
-          updateUser(e, userState);
-        }}
-      >
-        <div className="flex flex-col gap-1">
-          <label htmlFor="file-upload" className="text-gray-200 font-medium">
+    <main className="min-h-screen pt-24 pb-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Profile Settings</h1>
+          <p className="text-gray-400">Update your profile information and preferences</p>
+        </div>
+        
+        <form
+          action=""
+          className="bg-2 p-8 rounded-xl border border-rgba-3 shadow-xl"
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateUser(e, userState);
+          }}
+        >
+        <div className="flex flex-col gap-3 mb-8">
+          <label htmlFor="file-upload" className="text-white font-semibold text-lg">
             Profile Picture
           </label>
-          <div>
+          <div className="flex items-center gap-6">
             <label
               htmlFor="file-upload"
-              className="py-4 flex items-center justify-center border-2 border-dashed border-rgba-3 rounded-lg cursor-pointer hover:border-[#6FCF97] transition-colors"
+              className="relative group cursor-pointer"
             >
-              <Image
-                width={100}
-                height={100}
-                src={previewImage || user?.photo || "/image--user.png"}
-                alt="profile picture"
-                className="rounded-lg"
-              />
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-rgba-3 group-hover:border-[#7263F3] transition-all duration-300">
+                <Image
+                  width={96}
+                  height={96}
+                  src={previewImage || user?.photo || "/image--user.png"}
+                  alt="profile picture"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="text-white text-sm font-medium">Change</span>
+              </div>
             </label>
+            <div className="flex-1">
+              <p className="text-gray-400 text-sm">Click on the image to upload a new profile picture</p>
+              <p className="text-gray-500 text-xs mt-1">Supports JPG, PNG, GIF up to 5MB</p>
+            </div>
             <input 
               id="file-upload" 
               type="file" 
@@ -70,12 +85,12 @@ function page() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="github" className="mt-6 text-gray-300 font-medium">
+        <div className="flex flex-col gap-4 mb-8">
+          <label className="text-white font-semibold text-lg">
             Social Links
           </label>
 
-          <div className="flex-1 grid gap-4 grid-cols-[repeat(auto-fill,minmax(290px,1fr))]">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             <div className="relative w-full">
               <label
                 htmlFor="github"
@@ -90,8 +105,8 @@ function page() {
                 type="text"
                 defaultValue={user?.github}
                 onChange={(e) => handlerUserInput("github")(e)}
-                placeholder="GitHub URL"
-                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-3 rounded-md outline-none focus:border-[#6FCF97]"
+                placeholder="https://github.com/username"
+                className="w-full py-3 pl-12 pr-4 text-white bg-1 border-2 border-rgba-3 rounded-lg outline-none focus:border-[#7263F3] focus:bg-2 transition-all duration-300"
               />
             </div>
 
@@ -109,8 +124,8 @@ function page() {
                 type="text"
                 defaultValue={user?.linkedin}
                 onChange={(e) => handlerUserInput("linkedin")(e)}
-                placeholder="LinkedIn URL"
-                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-3 rounded-md outline-none focus:border-[#6FCF97]"
+                placeholder="https://linkedin.com/in/username"
+                className="w-full py-3 pl-12 pr-4 text-white bg-1 border-2 border-rgba-3 rounded-lg outline-none focus:border-[#7263F3] focus:bg-2 transition-all duration-300"
               />
             </div>
             <div className="relative w-full">
@@ -127,17 +142,21 @@ function page() {
                 type="email"
                 defaultValue={user?.publicEmail}
                 onChange={(e) => handlerUserInput("publicEmail")(e)}
-                placeholder="Public Email"
-                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-3 rounded-md outline-none focus:border-[#6FCF97]"
+                placeholder="your.email@example.com"
+                className="w-full py-3 pl-12 pr-4 text-white bg-1 border-2 border-rgba-3 rounded-lg outline-none focus:border-[#7263F3] focus:bg-2 transition-all duration-300"
               />
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <div className="w-full mt-4 flex gap-4">
-            <div className="flex-1 flex flex-col gap-1">
-              <label htmlFor="name" className="text-gray-300">
+        <div className="flex flex-col gap-6 mb-8">
+          <label className="text-white font-semibold text-lg">
+            Personal Information
+          </label>
+          
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="name" className="text-gray-300 font-medium">
                 Full Name
               </label>
               <input
@@ -145,11 +164,11 @@ function page() {
                 id="name"
                 name="name"
                 defaultValue={user?.name}
-                className="w-full py-[.8rem] pl-4 pr-1 text-gray-200 bg-transparent border-[2px] border-rgba-2 rounded-md outline-none focus:border-[#6fcf97]"
+                className="w-full py-3 px-4 text-white bg-1 border-2 border-rgba-3 rounded-lg outline-none focus:border-[#7263F3] focus:bg-2 transition-all duration-300"
               />
             </div>
-            <div className="flex-1 flex flex-col gap-1">
-              <label htmlFor="name" className="text-gray-300">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="email" className="text-gray-300 font-medium">
                 Private Email
               </label>
               <input
@@ -157,15 +176,15 @@ function page() {
                 id="email"
                 name="email"
                 defaultValue={user?.email}
-                className="w-full py-[.8rem] pl-4 pr-1 text-gray-200 bg-transparent border-[2px] border-rgba-2 rounded-md outline-none focus:border-[#6fcf97]"
+                className="w-full py-3 px-4 text-white bg-1 border-2 border-rgba-3 rounded-lg outline-none focus:border-[#7263F3] focus:bg-2 transition-all duration-300"
               />
             </div>
           </div>
 
-          <div className="mt-4 flex flex-col gap-1">
-            <div className="flex-1 flex flex-col gap-1">
-              <label htmlFor="bio" className="text-gray-300">
-                Add Bio
+          <div className="flex flex-col gap-6 mb-8">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="bio" className="text-gray-300 font-medium">
+                Bio
               </label>
               <textarea
                 id="bio"
@@ -173,60 +192,67 @@ function page() {
                 rows={4}
                 defaultValue={user?.bio}
                 onChange={(e) => handlerUserInput("bio")(e)}
-                className="w-full py-4 pl-4 pr-1 text-gray-200 bg-transparent border-[2px] border-rgba-2 rounded-md outline-none focus:border-[#6fcf97] resize-none"
+                placeholder="Tell us about yourself..."
+                className="w-full py-3 px-4 text-white bg-1 border-2 border-rgba-3 rounded-lg outline-none focus:border-[#7263F3] focus:bg-2 transition-all duration-300 resize-none"
               />
             </div>
 
-            <div className="w-full mt-4 flex gap-4">
-              <div className="flex-1 flex flex-col gap-1">
-                <label htmlFor="oldPassword" className="text-gray-300">
-                  Old Password
-                </label>
-                <input
-                  type="password"
-                  id="oldPassword"
-                  value={oldPassword}
-                  onChange={handlePasswordChange}
-                  name="oldPassword"
-                  className="w-full py-[.8rem] pl-4 pr-1 text-gray-200 bg-transparent border-[2px] border-rgba-2 rounded-md outline-none focus:border-[#6fcf97]"
-                />
-              </div>
-              <div className="flex-1 flex flex-col gap-1">
-                <label htmlFor="newPassword" className="text-gray-300">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  value={newPassword}
-                  onChange={handlePasswordChange}
-                  name="newPassword"
-                  className="w-full py-[.8rem] pl-4 pr-1 text-gray-200 bg-transparent border-[2px] border-rgba-2 rounded-md outline-none focus:border-[#6fcf97]"
-                />
+            <div className="flex flex-col gap-4">
+              <label className="text-white font-semibold text-lg">
+                Change Password
+              </label>
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="oldPassword" className="text-gray-300 font-medium">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    id="oldPassword"
+                    value={oldPassword}
+                    onChange={handlePasswordChange}
+                    name="oldPassword"
+                    placeholder="Enter current password"
+                    className="w-full py-3 px-4 text-white bg-1 border-2 border-rgba-3 rounded-lg outline-none focus:border-[#7263F3] focus:bg-2 transition-all duration-300"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="newPassword" className="text-gray-300 font-medium">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    value={newPassword}
+                    onChange={handlePasswordChange}
+                    name="newPassword"
+                    placeholder="Enter new password"
+                    className="w-full py-3 px-4 text-white bg-1 border-2 border-rgba-3 rounded-lg outline-none focus:border-[#7263F3] focus:bg-2 transition-all duration-300"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex gap-4 justify-end">
+        <div className="mt-8 flex gap-4 justify-end">
           <button
             type="button"
-            className="py-4 px-8 mt-4 h-[50px] flex justify-center items-center font-medium bg-red-500 text-white rounded-md hover:bg-red-500/50
-            transition-all duration-300 ease-in-out"
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/25 transition-all duration-300 ease-in-out"
             onClick={() => changePassword(oldPassword, newPassword)}
           >
             Update Password
           </button>
           <button
             type="submit"
-            className="py-4 px-8 mt-4 h-[50px] flex justify-center items-center font-medium bg-blue-500 text-white rounded-md
-            hover:bg-blue-500/70 transition-all duration-300 ease-in-out"
+            className="px-6 py-3 bg-gradient-to-r from-[#7263F3] to-[#6BBE92] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[#7263F3]/25 hover:scale-105 transition-all duration-300 ease-in-out"
           >
             Update Profile
           </button>
         </div>
       </form>
-    </main>
+    </div>
+  </main>
   );
 }
 

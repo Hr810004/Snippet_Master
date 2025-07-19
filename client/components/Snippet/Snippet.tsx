@@ -11,7 +11,7 @@ import {
   heartOutline,
   trash,
 } from "@/utils/Icons";
-import { FaQrcode } from "react-icons/fa";
+import { FaQrcode, FaRobot } from "react-icons/fa";
 import Image from "next/image";
 import Link from "next/link";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -213,6 +213,20 @@ function Snippet({ snippet, height = "400px" }: Props) {
           >
             {bookmarkEmpty}
           </button>
+          <Link
+            href={`/snippet/${snippet?.title
+              .toLowerCase()
+              .split(" ")
+              .join("-")}-${snippet?._id}`}
+          >
+            <button
+              className="w-10 h-10 rounded-md text-[#7263F3] text-lg flex items-center justify-center hover:text-[#6BBE92] transition-colors"
+              style={{ background: useBtnColorMemo }}
+              title="AI Analysis"
+            >
+              <FaRobot />
+            </button>
+          </Link>
         </div>
       </div>
 

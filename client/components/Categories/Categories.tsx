@@ -65,8 +65,8 @@ function Categories() {
 
   return (
     <div className="fixed w-full z-10">
-      <div className="pl-14 pr-[14rem] py-5 bg-3 border-b-2 border-rgba-2">
-        <Carousel className="w-full lg:max-w-[1200px] xl:max-w-[1450px] relative">
+      <div className="pl-14 pr-[16rem] py-5 bg-3 border-b-2 border-rgba-2">
+        <Carousel className="w-full lg:max-w-[1100px] xl:max-w-[1300px] relative">
           <CarouselContent className="flex gap-4">
             <CarouselItem
               className={`relative px-6 py-1 rounded-full cursor-pointer border-[0.1rem] border-rgba-1 select-none
