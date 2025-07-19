@@ -3,6 +3,7 @@ import { useUserContext } from "@/context/userContext";
 import Image from "next/image";
 import React from "react";
 import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 function page() {
   const { user, updateUser, changePassword, userState, handlerUserInput } =
@@ -33,6 +34,34 @@ function page() {
     }
   };
 
+  const updateUserWithImage = async (formData: FormData) => {
+    try {
+      const response = await fetch("https://snippet-master-harsh810.onrender.com/api/v1/user", {
+        method: "PATCH",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
+
+      const updatedUser = await response.json();
+      
+      // Update the user context
+      updateUser(null, updatedUser);
+      
+      // Clear the selected image
+      setSelectedImage(null);
+      setPreviewImage("");
+      
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    }
+  };
+
   return (
     <main className="min-h-screen pt-24 pb-8 px-4">
       <div className="max-w-4xl mx-auto">
@@ -44,9 +73,38 @@ function page() {
         <form
           action=""
           className="bg-2 p-8 rounded-xl border border-rgba-3 shadow-xl"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            updateUser(e, userState);
+            
+            // Create FormData to handle file upload
+            const formData = new FormData();
+            
+            // Add form fields
+            const form = e.target as HTMLFormElement;
+            const nameInput = form.querySelector('#name') as HTMLInputElement;
+            const emailInput = form.querySelector('#email') as HTMLInputElement;
+            const bioInput = form.querySelector('#bio') as HTMLTextAreaElement;
+            const githubInput = form.querySelector('#github') as HTMLInputElement;
+            const linkedinInput = form.querySelector('#linkedin') as HTMLInputElement;
+            const publicEmailInput = form.querySelector('#publicEmail') as HTMLInputElement;
+            
+            formData.append('name', nameInput?.value || user?.name || '');
+            formData.append('email', emailInput?.value || user?.email || '');
+            formData.append('bio', bioInput?.value || user?.bio || '');
+            formData.append('github', githubInput?.value || user?.github || '');
+            formData.append('linkedin', linkedinInput?.value || user?.linkedin || '');
+            formData.append('publicEmail', publicEmailInput?.value || user?.publicEmail || '');
+            
+            // Add image file if selected
+            if (selectedImage) {
+              formData.append('photo', selectedImage);
+            } else {
+              // If no new image selected, keep the current photo
+              formData.append('photo', user?.photo || '');
+            }
+            
+            // Call updateUser with FormData
+            await updateUserWithImage(formData);
           }}
         >
         <div className="flex flex-col gap-3 mb-8">

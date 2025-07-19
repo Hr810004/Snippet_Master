@@ -7,6 +7,7 @@ import Token from "../../models/auth/Token.js";
 import crypto from "node:crypto";
 import hashToken from "../../helpers/hashToken.js";
 import sendEmail from "../../helpers/sendEmail.js";
+import { deleteOldProfileImage } from "../../helpers/cloudinaryHelper.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -177,10 +178,29 @@ export const updateUser = asyncHandler(async (req, res) => {
     // update user properties
     user.name = req.body.name || user.name;
     user.bio = req.body.bio || user.bio;
-    user.photo = req.body.photo || user.photo;
     user.github = req.body.github || user.github;
     user.linkedin = req.body.linkedin || user.linkedin;
     user.publicEmail = req.body.publicEmail || user.publicEmail;
+
+    // Handle file upload for photo
+    if (req.file) {
+      try {
+        // Delete old profile image if it exists
+        if (user.photo && !user.photo.includes('avatars.githubusercontent.com')) {
+          await deleteOldProfileImage(user.photo);
+        }
+        
+        // Cloudinary upload successful - use the secure URL
+        user.photo = req.file.path;
+        console.log("Profile photo uploaded to Cloudinary:", req.file.path);
+      } catch (error) {
+        console.error("Error uploading to Cloudinary:", error);
+        return res.status(500).json({ message: "Failed to upload image" });
+      }
+    } else if (req.body.photo && req.body.photo !== user.photo) {
+      // If photo URL is provided in body and it's different from current
+      user.photo = req.body.photo;
+    }
 
     const updated = await user.save();
 
