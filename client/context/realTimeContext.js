@@ -93,7 +93,12 @@ export const RealTimeProvider = ({ children }) => {
 export const useRealTime = () => {
   const context = useContext(RealTimeContext);
   if (!context) {
-    throw new Error("useRealTime must be used within a RealTimeProvider");
+    // Return default values when context is not available (during SSR)
+    return {
+      socket: null,
+      isConnected: false,
+      emitSnippetCreated: () => {},
+    };
   }
   return context;
 }; 

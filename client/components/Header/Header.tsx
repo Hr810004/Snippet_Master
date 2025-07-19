@@ -14,6 +14,7 @@ function Header() {
   const { user } = useUserContext();
   const { openModalForSnippet, openProfileModal, openModalForSearch } =
     useGlobalContext();
+  
   const { isConnected } = useRealTime();
 
   const photo = user?.photo;

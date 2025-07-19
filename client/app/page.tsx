@@ -6,11 +6,9 @@ import { ISnippet } from "@/types/types";
 import Categories from "@/components/Categories/Categories";
 import { next, prev } from "@/utils/Icons";
 import { useEffect, useState } from "react";
-import { useRealTime } from "@/context/realTimeContext";
 
 export default function Home() {
   const { publicSnippets, getTags, getPublicSnippets, setPublicSnippets } = useSnippetContext();
-  const { isConnected } = useRealTime();
   const [currentPage, setCurrentPage] = useState(1);
 
   const handlePrevious = () => {
