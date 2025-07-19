@@ -49,17 +49,19 @@ export const analyzeCode = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Code is required" });
     }
 
-    const prompt = `Analyze this ${language || 'code'} and provide:
-1. Code quality score (1-10)
-2. Potential improvements
-3. Security concerns
-4. Performance suggestions
-5. Best practices recommendations
+    const prompt = `Analyze this ${language || 'code'} and provide a comprehensive analysis in a clear, readable format.
 
 Code:
 ${code}
 
-Please provide a structured response in JSON format.`;
+Please provide:
+1. Code Quality Score (1-10) with explanation
+2. Potential improvements with specific suggestions
+3. Security concerns if any
+4. Performance tips and optimizations
+5. Best practices recommendations
+
+Format your response in a clear, readable way with proper headings and bullet points. Do not use JSON format.`;
 
     const modelConfig = await getAvailableModel();
     const result = await modelConfig.model.generateContent(prompt);
@@ -90,11 +92,11 @@ ${code}
 
 Please provide:
 1. Specific issues identified
-2. Improved code examples
-3. Explanation of changes
-4. Alternative approaches
+2. Improved code examples with explanations
+3. Alternative approaches
+4. Best practices recommendations
 
-Format as JSON.`;
+Format your response in a clear, readable way with proper headings, code blocks, and explanations. Do not use JSON format.`;
 
     const modelConfig = await getAvailableModel();
     const result = await modelConfig.model.generateContent(prompt);
@@ -128,7 +130,7 @@ export const generateDocumentation = asyncHandler(async (req, res) => {
 Code:
 ${code}
 
-Please provide well-formatted documentation.`;
+Please provide well-formatted documentation in a clear, readable format with proper headings, code examples, and explanations. Do not use JSON format.`;
 
     const modelConfig = await getAvailableModel();
     const result = await modelConfig.model.generateContent(prompt);
@@ -154,15 +156,9 @@ export const convertCode = asyncHandler(async (req, res) => {
       });
     }
 
-    const prompt = `Convert the following ${sourceLanguage} code to ${targetLanguage}. 
-    
-    Source Code (${sourceLanguage}):
-    ${code}
-    
-    Please provide the converted code in ${targetLanguage} with proper syntax, formatting, and comments explaining any significant changes. 
-    Make sure the converted code is functional and follows ${targetLanguage} best practices.
-    
-    Return only the converted code without any additional explanations.`;
+    const prompt = `Convert this ${sourceLanguage} code to ${targetLanguage}. Return ONLY the converted code with proper formatting, indentation, and syntax. No comments, no explanations, no markdown formatting, no code blocks. Just pure, well-formatted ${targetLanguage} code:
+
+${code}`;
 
     const modelConfig = await getAvailableModel();
     const result = await modelConfig.model.generateContent(prompt);

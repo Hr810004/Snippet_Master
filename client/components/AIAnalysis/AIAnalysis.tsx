@@ -64,8 +64,18 @@ const AIAnalysis: React.FC<AIAnalysisProps> = ({ code, language }) => {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm text-gray-400">Powered by {analysis.model}</span>
           </div>
-          <div className="text-gray-300 whitespace-pre-wrap text-sm">
-            {analysis.analysis}
+          <div className="text-gray-300 whitespace-pre-wrap text-sm prose prose-invert max-w-none">
+            {analysis.analysis.split('\n').map((line, index) => {
+              if (line.startsWith('#')) {
+                return <h3 key={index} className="text-white font-semibold mt-4 mb-2">{line.replace(/^#+\s*/, '')}</h3>;
+              } else if (line.startsWith('- ') || line.startsWith('* ')) {
+                return <li key={index} className="ml-4">{line.replace(/^[-*]\s*/, '')}</li>;
+              } else if (line.trim() === '') {
+                return <br key={index} />;
+              } else {
+                return <p key={index} className="mb-2">{line}</p>;
+              }
+            })}
           </div>
         </div>
       )}

@@ -102,8 +102,18 @@ const AIDocumentation: React.FC<AIDocumentationProps> = ({ code, language }) => 
               </button>
             </div>
           </div>
-          <div className="text-gray-300 whitespace-pre-wrap text-sm max-h-96 overflow-y-auto">
-            {documentation.documentation}
+          <div className="text-gray-300 whitespace-pre-wrap text-sm max-h-96 overflow-y-auto prose prose-invert max-w-none">
+            {documentation.documentation.split('\n').map((line, index) => {
+              if (line.startsWith('#')) {
+                return <h3 key={index} className="text-white font-semibold mt-4 mb-2">{line.replace(/^#+\s*/, '')}</h3>;
+              } else if (line.startsWith('- ') || line.startsWith('* ')) {
+                return <li key={index} className="ml-4">{line.replace(/^[-*]\s*/, '')}</li>;
+              } else if (line.trim() === '') {
+                return <br key={index} />;
+              } else {
+                return <p key={index} className="mb-2">{line}</p>;
+              }
+            })}
           </div>
         </div>
       )}

@@ -48,7 +48,13 @@ const CodeConverter = () => {
 
   const convertCodeWithGemini = async (code: string, from: string, to: string) => {
     try {
-      const response = await fetch("https://snippet-master-harsh810.onrender.com/api/v1/convert-code", {
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Request timeout")), 30000); // 30 second timeout
+      });
+
+      // Create the fetch promise
+      const fetchPromise = fetch("https://snippet-master-harsh810.onrender.com/api/v1/convert-code", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,6 +67,9 @@ const CodeConverter = () => {
         }),
       });
 
+      // Race between fetch and timeout
+      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+
       if (!response.ok) {
         throw new Error("Failed to convert code");
       }
@@ -69,6 +78,9 @@ const CodeConverter = () => {
       return data.convertedCode;
     } catch (error) {
       console.error("Error calling Gemini API:", error);
+      if (error instanceof Error && error.message === "Request timeout") {
+        throw new Error("Conversion took too long. Please try with a shorter code snippet.");
+      }
       throw error;
     }
   };
@@ -219,7 +231,8 @@ const CodeConverter = () => {
                   {isConverting ? (
                     <div className="text-center">
                       <div className="w-8 h-8 border-2 border-[#7263F3] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                      <p>Converting code with AI...</p>
+                      <p className="text-[#7263F3] font-medium">Converting...</p>
+                      <p className="text-gray-500 text-sm mt-1">This usually takes 2-5 seconds</p>
                     </div>
                   ) : (
                     "Converted code will appear here..."
@@ -249,10 +262,10 @@ const CodeConverter = () => {
               {isConverting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Converting with AI...
+                  Converting...
                 </div>
               ) : (
-                "Convert Code with AI"
+                "Convert Code"
               )}
             </button>
           </div>
