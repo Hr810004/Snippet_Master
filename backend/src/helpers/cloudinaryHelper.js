@@ -7,6 +7,26 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Validate Cloudinary configuration
+const validateCloudinaryConfig = () => {
+  const requiredVars = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'];
+  const missingVars = requiredVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    console.error('Missing Cloudinary environment variables:', missingVars);
+    throw new Error(`Missing Cloudinary configuration: ${missingVars.join(', ')}`);
+  }
+  
+  console.log('Cloudinary configuration validated successfully');
+};
+
+// Validate on module load
+try {
+  validateCloudinaryConfig();
+} catch (error) {
+  console.error('Cloudinary configuration error:', error.message);
+}
+
 // Helper function to delete old profile image from Cloudinary
 export const deleteOldProfileImage = async (imageUrl) => {
   if (!imageUrl || imageUrl.includes('avatars.githubusercontent.com')) {

@@ -28,25 +28,27 @@ import {
 
 const router = express.Router();
 
-// Configure Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Cloudinary is already configured in cloudinaryHelper.js
 
 // Configure multer with Cloudinary storage
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary.v2,
-  params: {
-    folder: "snippy-profiles",
-    allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
-    transformation: [
-      { width: 400, height: 400, crop: "fill", gravity: "face" },
-      { quality: "auto" },
-    ],
-  },
-});
+let storage;
+try {
+  storage = new CloudinaryStorage({
+    cloudinary: cloudinary.v2,
+    params: {
+      folder: "snippy-profiles",
+      allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
+      transformation: [
+        { width: 400, height: 400, crop: "fill", gravity: "face" },
+        { quality: "auto" },
+      ],
+    },
+  });
+  console.log("Cloudinary storage configured successfully");
+} catch (error) {
+  console.error("Error configuring Cloudinary storage:", error);
+  throw new Error("Failed to configure Cloudinary storage: " + error.message);
+}
 
 const upload = multer({
   storage: storage,
@@ -54,19 +56,50 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
+    console.log("Processing file:", file.originalname, "MIME type:", file.mimetype);
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
       cb(new Error('Only image files are allowed!'), false);
     }
   },
-});
+}).single('photo');
+
+// Error handling middleware for multer
+const handleUpload = (req, res, next) => {
+  upload(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      console.error("Multer error:", err);
+      return res.status(400).json({ 
+        message: "File upload error", 
+        error: err.message 
+      });
+    } else if (err) {
+      console.error("Upload error:", err);
+      
+      // Check for Cloudinary-specific errors
+      if (err.message && err.message.includes('cloudinary')) {
+        console.error("Cloudinary configuration error:", err);
+        return res.status(500).json({ 
+          message: "Image upload service error", 
+          error: "Failed to upload image. Please try again later."
+        });
+      }
+      
+      return res.status(400).json({ 
+        message: "File upload failed", 
+        error: err.message 
+      });
+    }
+    next();
+  });
+};
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/logout", logoutUser);
 router.get("/user", protect, getUser);
-router.patch("/user", protect, upload.single('photo'), updateUser);
+router.patch("/user", protect, handleUpload, updateUser);
 
 // get user by Id
 router.get("/user/:id", getUserById);

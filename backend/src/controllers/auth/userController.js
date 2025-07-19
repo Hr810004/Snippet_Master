@@ -171,22 +171,56 @@ export const getUserById = asyncHandler(async (req, res) => {
 
 // update user
 export const updateUser = asyncHandler(async (req, res) => {
-  // get user details from the token ----> protect middleware
-  const user = await User.findById(req.user._id);
+  try {
+    console.log("Update user request received:", {
+      userId: req.user._id,
+      hasFile: !!req.file,
+      bodyFields: Object.keys(req.body)
+    });
 
-  if (user) {
+    // get user details from the token ----> protect middleware
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      console.log("User not found:", req.user._id);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("User found, updating properties...");
+
     // update user properties
     user.name = req.body.name || user.name;
     user.bio = req.body.bio || user.bio;
     user.github = req.body.github || user.github;
     user.linkedin = req.body.linkedin || user.linkedin;
     user.publicEmail = req.body.publicEmail || user.publicEmail;
+    
+    // Handle email update with validation
+    if (req.body.email && req.body.email !== user.email) {
+      // Check if the new email is already taken by another user
+      const existingUser = await User.findOne({ email: req.body.email });
+      if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+        return res.status(400).json({ message: "Email is already taken by another user" });
+      }
+      user.email = req.body.email;
+      // Reset email verification status when email is changed
+      user.isVerified = false;
+    }
 
     // Handle file upload for photo
     if (req.file) {
       try {
+        console.log("Processing file upload:", req.file.originalname);
+        console.log("File details:", {
+          fieldname: req.file.fieldname,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+          path: req.file.path
+        });
+        
         // Delete old profile image if it exists
         if (user.photo && !user.photo.includes('avatars.githubusercontent.com')) {
+          console.log("Deleting old profile image:", user.photo);
           await deleteOldProfileImage(user.photo);
         }
         
@@ -195,15 +229,24 @@ export const updateUser = asyncHandler(async (req, res) => {
         console.log("Profile photo uploaded to Cloudinary:", req.file.path);
       } catch (error) {
         console.error("Error uploading to Cloudinary:", error);
-        return res.status(500).json({ message: "Failed to upload image" });
+        console.error("Cloudinary error details:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        return res.status(500).json({ message: "Failed to upload image: " + error.message });
       }
     } else if (req.body.photo && req.body.photo !== user.photo && req.body.photo !== '') {
       // If photo URL is provided in body and it's different from current and not empty
+      console.log("Updating photo URL:", req.body.photo);
       user.photo = req.body.photo;
+    } else {
+      console.log("No photo update needed, keeping existing photo");
     }
-    // If no photo is provided, keep the existing photo
 
+    console.log("Saving updated user...");
     const updated = await user.save();
+    console.log("User saved successfully");
 
     res.status(200).json({
       _id: updated._id,
@@ -217,9 +260,28 @@ export const updateUser = asyncHandler(async (req, res) => {
       github: updated.github,
       linkedin: updated.linkedin,
     });
-  } else {
-    // 404 Not Found
-    return res.status(404).json({ message: "User not found" });
+  } catch (error) {
+    console.error("Error in updateUser:", error);
+    
+    // Check for specific error types
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: "Validation error", 
+        error: Object.values(error.errors).map(err => err.message).join(', ')
+      });
+    }
+    
+    if (error.name === 'MongoError' && error.code === 11000) {
+      return res.status(400).json({ 
+        message: "Duplicate field value", 
+        error: "A user with this information already exists"
+      });
+    }
+    
+    return res.status(500).json({ 
+      message: "Failed to update profile", 
+      error: process.env.NODE_ENV === 'development' ? error.message : "Internal server error"
+    });
   }
 });
 
