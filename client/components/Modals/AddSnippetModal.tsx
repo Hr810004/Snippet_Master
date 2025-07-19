@@ -122,126 +122,154 @@ function AddSnippetModal() {
   };
 
   return (
-    <div className="fixed top-0 left-0 z-40 h-full w-full bg-[#000]/30 backdrop-blur-sm bg-opacity-50 overflow-hidden">
+    <div className="fixed top-0 left-0 z-50 h-full w-full bg-black/60 backdrop-blur-sm overflow-hidden">
       <div
         ref={ref}
-        className="max-h-[90vh] overflow-y-auto py-5 px-6 bg-3 max-w-[920px] w-full flex flex-col gap-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg shadow-md"
+        className="max-h-[95vh] overflow-y-auto py-8 px-8 bg-gradient-to-br from-2 to-3 max-w-[1000px] w-full flex flex-col gap-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-rgba-3 shadow-2xl"
       >
-        <form action="" className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <h1 className="text-white text-3xl font-bold">
-            {modalMode === "edit-snippet" ? (
-              <span className="flex items-center gap-4">
-                {edit} Edit Snippet
-              </span>
-            ) : (
-              <span className="flex items-center gap-4">{plus}Add Snippet</span>
-            )}
-          </h1>
+        <form action="" className="flex flex-col gap-6" onSubmit={handleSubmit}>
+          {/* Header */}
+          <div className="text-center mb-4">
+            <h1 className="text-4xl font-bold text-white mb-2">
+              {modalMode === "edit-snippet" ? (
+                <span className="flex items-center justify-center gap-3">
+                  <span className="text-2xl">{edit}</span>
+                  Edit Snippet
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-3">
+                  <span className="text-2xl">{plus}</span>
+                  Create New Snippet
+                </span>
+              )}
+            </h1>
+            <p className="text-gray-400">
+              {modalMode === "edit-snippet" 
+                ? "Update your code snippet" 
+                : "Share your code with the community"
+              }
+            </p>
+          </div>
 
-          <div className="flex justify-between gap-4">
-            <div className="flex-1">
+          {/* Basic Info Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <label className="block text-white font-semibold mb-2">Snippet Title</label>
               <input
                 type="text"
                 name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Title"
-                className="w-full h-12 px-4 bg-1 text-white rounded-lg"
+                placeholder="Enter a descriptive title..."
+                className="w-full h-12 px-4 bg-1 text-white rounded-lg border-2 border-rgba-3 focus:border-[#7263F3] focus:bg-2 transition-all duration-300"
               />
             </div>
             <div>
+              <label className="block text-white font-semibold mb-2">Language</label>
               <select
                 name="language"
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="w-full h-12 px-4 bg-1 text-white rounded-lg cursor-pointer"
+                className="w-full h-12 px-4 bg-1 text-white rounded-lg border-2 border-rgba-3 focus:border-[#7263F3] focus:bg-2 cursor-pointer transition-all duration-300"
               >
-                {languages.map((lang) => {
-                  return (
-                    <option key={lang} value={lang}>
-                      {lang}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div>
-              <select
-                name="isPublic"
-                value={isPublic.toString()}
-                onChange={(e) => setIsPublic(e.target.value === "true")}
-                className="w-full h-12 px-4 bg-1 text-white rounded-lg cursor-pointer"
-              >
-                <option value="true">Public</option>
-                <option value="false">Private</option>
+                {languages.map((lang) => (
+                  <option key={lang} value={lang} className="bg-1">
+                    {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
+          {/* Visibility Section */}
           <div>
+            <label className="block text-white font-semibold mb-2">Visibility</label>
+            <select
+              name="isPublic"
+              value={isPublic.toString()}
+              onChange={(e) => setIsPublic(e.target.value === "true")}
+              className="w-full h-12 px-4 bg-1 text-white rounded-lg border-2 border-rgba-3 focus:border-[#7263F3] focus:bg-2 cursor-pointer transition-all duration-300"
+            >
+              <option value="true" className="bg-1">🌍 Public - Anyone can view</option>
+              <option value="false" className="bg-1">🔒 Private - Only you can view</option>
+            </select>
+          </div>
+
+          {/* Description Section */}
+          <div>
+            <label className="block text-white font-semibold mb-2">Description</label>
             <textarea
               name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description"
-              className="w-full pt-2 px-4 bg-1 text-white rounded-lg"
-              rows={2}
-            ></textarea>
+              placeholder="Explain what this code does, how to use it, or any important notes..."
+              className="w-full py-3 px-4 bg-1 text-white rounded-lg border-2 border-rgba-3 focus:border-[#7263F3] focus:bg-2 transition-all duration-300 resize-none"
+              rows={3}
+            />
           </div>
 
+          {/* Code Section */}
           <div>
-            <pre>
-              <code>
-                <textarea
-                  name="code"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="w-full pt-2 h-[400px] px-4 bg-1 text-white rounded-lg"
-                  placeholder="// Code here..."
-                ></textarea>
-              </code>
-            </pre>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            {tags.map((tag: ITag, index: number) => {
-              return (
-                <Button
-                  key={index}
-                  type="button"
-                  className="py-1 text-white text-sm"
-                  style={{
-                    background: activeTags.some((activeTag: any) => {
-                      return activeTag._id === tag._id;
-                    })
-                      ? "#7263f3"
-                      : useTagColorMemo,
-                  }}
-                  onClick={() => handleTags(tag)}
-                >
-                  {tag.name}
-                </Button>
-              );
-            })}
+            <label className="block text-white font-semibold mb-2">Code</label>
+            <div className="relative">
+              <textarea
+                name="code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="w-full py-4 px-4 bg-1 text-white rounded-lg border-2 border-rgba-3 focus:border-[#7263F3] focus:bg-2 transition-all duration-300 font-mono text-sm resize-none"
+                placeholder={`// Enter your ${language} code here...
+// Use proper indentation and formatting
+// Add comments to explain complex logic`}
+                rows={15}
+              />
+              <div className="absolute top-2 right-2 text-xs text-gray-500 bg-1 px-2 py-1 rounded">
+                {language.toUpperCase()}
+              </div>
+            </div>
           </div>
 
-          <div className="flex justify-end gap-4">
+          {/* Tags Section */}
+          <div>
+            <label className="block text-white font-semibold mb-3">Tags</label>
+            <div className="flex flex-wrap gap-3 p-4 bg-1 rounded-lg border-2 border-rgba-3 min-h-[60px]">
+              {tags.length > 0 ? (
+                tags.map((tag: ITag, index: number) => (
+                  <Button
+                    key={index}
+                    type="button"
+                    className={`py-2 px-4 text-white text-sm rounded-lg transition-all duration-300 hover:scale-105 ${
+                      activeTags.some((activeTag: any) => activeTag._id === tag._id)
+                        ? 'bg-gradient-to-r from-[#7263F3] to-[#6BBE92] shadow-lg'
+                        : 'bg-rgba-3 hover:bg-rgba-2'
+                    }`}
+                    onClick={() => handleTags(tag)}
+                  >
+                    {tag.name}
+                  </Button>
+                ))
+              ) : (
+                <p className="text-gray-500 italic">No tags available</p>
+              )}
+            </div>
+            <p className="text-gray-400 text-sm mt-2">
+              Select relevant tags to help others discover your snippet
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 pt-4 border-t border-rgba-3">
             <button
               type="button"
-              className="h-[47px] flex items-center justify-center px-8 bg-red-500 text-white hover:bg-red-500/80 rounded-md transition-all duration-300 ease-in-out"
-              style={{ fontWeight: 400 }}
+              className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/25 transition-all duration-300"
               onClick={closeModal}
             >
               Cancel
             </button>
             <button
-              className={`h-[47px] flex items-center justify-center py-1 px-8 ${
-                modalMode === "edit" ? "bg-blue-400" : "bg-indigo-400"
-              } text-white hover:bg-indigo-400/90 rounded-md transition-all duration-300 ease-in-out`}
               type="submit"
-              style={{ fontWeight: 400 }}
+              className="px-8 py-3 bg-gradient-to-r from-[#7263F3] to-[#6BBE92] text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-[#7263F3]/25 hover:scale-105 transition-all duration-300"
             >
-              {modalMode === "edit-snippet" ? "Update Snippet" : "Add Snippet"}
+              {modalMode === "edit-snippet" ? "Update Snippet" : "Create Snippet"}
             </button>
           </div>
         </form>
