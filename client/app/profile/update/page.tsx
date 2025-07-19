@@ -43,7 +43,8 @@ function page() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update profile");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to update profile`);
       }
 
       const updatedUser = await response.json();
@@ -58,7 +59,7 @@ function page() {
       toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
     }
   };
 
@@ -98,10 +99,8 @@ function page() {
             // Add image file if selected
             if (selectedImage) {
               formData.append('photo', selectedImage);
-            } else {
-              // If no new image selected, keep the current photo
-              formData.append('photo', user?.photo || '');
             }
+            // Don't append photo if no new image is selected - let the backend handle it
             
             // Call updateUser with FormData
             await updateUserWithImage(formData);

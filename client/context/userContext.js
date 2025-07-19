@@ -167,12 +167,15 @@ export const UserContextProvider = ({ children }) => {
 
   // update user details
   const updateUser = async (e, data) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
     setLoading(true);
 
     try {
       const res = await axios.patch(`${serverUrl}/api/v1/user`, data, {
-        withCredentials: true, // send cookies to the server
+        withCredentials: true,
       });
 
       // update the user state
@@ -189,7 +192,7 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       console.log("Error updating user details", error);
       setLoading(false);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to update profile");
     }
   };
 

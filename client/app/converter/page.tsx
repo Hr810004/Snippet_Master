@@ -48,13 +48,7 @@ const CodeConverter = () => {
 
   const convertCodeWithGemini = async (code: string, from: string, to: string) => {
     try {
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Request timeout")), 30000); // 30 second timeout
-      });
-
-      // Create the fetch promise
-      const fetchPromise = fetch("https://snippet-master-harsh810.onrender.com/api/v1/convert-code", {
+      const response = await fetch("https://snippet-master-harsh810.onrender.com/api/v1/convert-code", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,9 +61,6 @@ const CodeConverter = () => {
         }),
       });
 
-      // Race between fetch and timeout
-      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
-
       if (!response.ok) {
         throw new Error("Failed to convert code");
       }
@@ -78,9 +69,6 @@ const CodeConverter = () => {
       return data.convertedCode;
     } catch (error) {
       console.error("Error calling Gemini API:", error);
-      if (error instanceof Error && error.message === "Request timeout") {
-        throw new Error("Conversion took too long. Please try with a shorter code snippet.");
-      }
       throw error;
     }
   };

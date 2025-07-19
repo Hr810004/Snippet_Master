@@ -197,10 +197,11 @@ export const updateUser = asyncHandler(async (req, res) => {
         console.error("Error uploading to Cloudinary:", error);
         return res.status(500).json({ message: "Failed to upload image" });
       }
-    } else if (req.body.photo && req.body.photo !== user.photo) {
-      // If photo URL is provided in body and it's different from current
+    } else if (req.body.photo && req.body.photo !== user.photo && req.body.photo !== '') {
+      // If photo URL is provided in body and it's different from current and not empty
       user.photo = req.body.photo;
     }
+    // If no photo is provided, keep the existing photo
 
     const updated = await user.save();
 
