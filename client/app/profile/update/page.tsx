@@ -1,8 +1,8 @@
 "use client";
 import { useUserContext } from "@/context/userContext";
-import { envelope, github, linkedin } from "@/utils/Icons";
 import Image from "next/image";
 import React from "react";
+import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
 
 function page() {
   const { user, updateUser, changePassword, userState, handlerUserInput } =
@@ -10,12 +10,26 @@ function page() {
 
   const [oldPassword, setOldPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
+  const [selectedImage, setSelectedImage] = React.useState<File | null>(null);
+  const [previewImage, setPreviewImage] = React.useState<string>("");
 
   const handlePasswordChange = async (e: any) => {
     if (e.target.name === "oldPassword") {
       setOldPassword(e.target.value);
     } else {
       setNewPassword(e.target.value);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -30,36 +44,44 @@ function page() {
         }}
       >
         <div className="flex flex-col gap-1">
-          <label htmlFor="file-upload" className="text-gray-200">
-            Add Profile Picture
+          <label htmlFor="file-upload" className="text-gray-200 font-medium">
+            Profile Picture
           </label>
           <div>
             <label
               htmlFor="file-upload"
-              className="py-4 flex items-center justify-center border-2 border-dashed border-rgba-2 rounded-lg cursor-pointer"
+              className="py-4 flex items-center justify-center border-2 border-dashed border-rgba-3 rounded-lg cursor-pointer hover:border-[#6FCF97] transition-colors"
             >
               <Image
                 width={100}
                 height={100}
-                src={user?.photo || "/image--user.png"}
+                src={previewImage || user?.photo || "/image--user.png"}
                 alt="profile picture"
                 className="rounded-lg"
               />
             </label>
-            <input id="file-upload" type="file" className="hidden" />
+            <input 
+              id="file-upload" 
+              type="file" 
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden" 
+            />
           </div>
+        </div>
 
-          <label htmlFor="github" className="mt-4 text-gray-300">
-            Add Social Links
+        <div className="flex flex-col gap-1">
+          <label htmlFor="github" className="mt-6 text-gray-300 font-medium">
+            Social Links
           </label>
 
           <div className="flex-1 grid gap-4 grid-cols-[repeat(auto-fill,minmax(290px,1fr))]">
             <div className="relative w-full">
               <label
                 htmlFor="github"
-                className="absolute top-[50%] left-[1rem] translate-y-[-50%] text-gray-200 text-2xl"
+                className="absolute top-[50%] left-[1rem] translate-y-[-50%] text-gray-400 text-xl"
               >
-                {github}
+                <FaGithub />
               </label>
 
               <input
@@ -68,17 +90,17 @@ function page() {
                 type="text"
                 defaultValue={user?.github}
                 onChange={(e) => handlerUserInput("github")(e)}
-                placeholder="Github"
-                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-2 rounded-md outline-none"
+                placeholder="GitHub URL"
+                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-3 rounded-md outline-none focus:border-[#6FCF97]"
               />
             </div>
 
             <div className="relative w-full">
               <label
                 htmlFor="linkedin"
-                className="absolute top-[50%] left-[1rem] translate-y-[-50%] text-gray-200 text-2xl"
+                className="absolute top-[50%] left-[1rem] translate-y-[-50%] text-gray-400 text-xl"
               >
-                {linkedin}
+                <FaLinkedin />
               </label>
 
               <input
@@ -87,16 +109,16 @@ function page() {
                 type="text"
                 defaultValue={user?.linkedin}
                 onChange={(e) => handlerUserInput("linkedin")(e)}
-                placeholder="Linkedin"
-                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-2 rounded-md outline-none"
+                placeholder="LinkedIn URL"
+                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-3 rounded-md outline-none focus:border-[#6FCF97]"
               />
             </div>
             <div className="relative w-full">
               <label
                 htmlFor="publicEmail"
-                className="absolute top-[50%] left-[1rem] translate-y-[-50%] text-gray-200 text-2xl"
+                className="absolute top-[50%] left-[1rem] translate-y-[-50%] text-gray-400 text-xl"
               >
-                {envelope}
+                <FaEnvelope />
               </label>
 
               <input
@@ -106,11 +128,13 @@ function page() {
                 defaultValue={user?.publicEmail}
                 onChange={(e) => handlerUserInput("publicEmail")(e)}
                 placeholder="Public Email"
-                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-2 rounded-md outline-none"
+                className="w-full py-[.8rem] pl-[3.2rem] pr-[1rem] text-gray-200 bg-transparent border-[2px] border-rgba-3 rounded-md outline-none focus:border-[#6FCF97]"
               />
             </div>
           </div>
+        </div>
 
+        <div className="flex flex-col gap-1">
           <div className="w-full mt-4 flex gap-4">
             <div className="flex-1 flex flex-col gap-1">
               <label htmlFor="name" className="text-gray-300">

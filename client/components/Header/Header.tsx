@@ -8,32 +8,38 @@ import { login, register } from "@/utils/Icons";
 import { useRouter } from "next/navigation";
 import { useGlobalContext } from "@/context/globalContext";
 import SearchIcon from "@/public/Icons/SearchIcon";
+import { useRealTime } from "@/context/realTimeContext";
 
 function Header() {
   const { user } = useUserContext();
   const { openModalForSnippet, openProfileModal, openModalForSearch } =
     useGlobalContext();
+  const { isConnected } = useRealTime();
 
   const photo = user?.photo;
   const router = useRouter();
 
   return (
     <div className="fixed z-20 top-0 w-full px-8 flex items-center justify-between bg-1 border-b-[2px] border-rgba-2 h-[8vh]">
-      <Link href="/" className="flex items-center gap-2">
+      <Link href="/" className="flex items-center">
         <Image
-          src="/thecodedealer--logo-white.png"
-          alt="logo"
-          width={30}
-          height={30}
-          className="ml-[1px]"
+          src="/logo.png"
+          alt="Snippy Logo"
+          width={120}
+          height={40}
+          className="object-contain"
+          priority
         />
-        <h1 className="flex items-center font-bold text-white text-2xl">
-          Snippy
-        </h1>
       </Link>
 
-      <div className="lg:flex hidden">
+      <div className="lg:flex hidden items-center gap-4">
         <SearchInput />
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          <span className="text-xs text-gray-400">
+            {isConnected ? 'Live' : 'Offline'}
+          </span>
+        </div>
       </div>
 
       {!user._id ? (

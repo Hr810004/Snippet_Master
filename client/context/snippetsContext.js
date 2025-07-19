@@ -9,11 +9,13 @@ import React, {
 import toast from "react-hot-toast";
 import { useGlobalContext } from "./globalContext";
 import { useUserContext } from "./userContext";
+import { useRealTime } from "./realTimeContext";
 
 const SnippetsContext = createContext();
 
 export const SnippetsProvider = ({ children }) => {
   const { closeModal } = useGlobalContext();
+  const { emitSnippetCreated } = useRealTime();
   const serverUrl = "https://snippet-master-harsh810.onrender.com/api/v1";
 
   const userId = useUserContext().user?._id;
@@ -31,6 +33,8 @@ export const SnippetsProvider = ({ children }) => {
       const res = await axios.post(`${serverUrl}/create-snippet`, data);
 
       setPublicSnippets([res.data, ...publicSnippets]);
+
+      emitSnippetCreated(res.data);
 
       getPublicSnippets();
 
@@ -294,6 +298,7 @@ export const SnippetsProvider = ({ children }) => {
     <SnippetsContext.Provider
       value={{
         publicSnippets,
+        setPublicSnippets,
         getPublicSnippets,
         useBtnColorMemo,
         useTagColorMemo,

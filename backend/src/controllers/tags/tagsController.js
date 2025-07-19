@@ -31,11 +31,23 @@ export const createTag = asyncHandler(async (req, res) => {
 
 export const getTags = asyncHandler(async (req, res) => {
   try {
-    const tags = await Tags.find({});
+    const tags = await Tags.find({}).sort({ usageCount: -1, name: 1 });
 
     return res.status(200).json(tags);
   } catch (error) {
     console.log("Error in getTags", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+export const getTagsByUser = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const tags = await Tags.find({ user: userId }).sort({ usageCount: -1, name: 1 });
+
+    return res.status(200).json(tags);
+  } catch (error) {
+    console.log("Error in getTagsByUser", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -63,6 +75,8 @@ export const deleteTag = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Tag not found" });
     }
 
+    await Tags.findByIdAndDelete(req.params.id);
+
     return res.status(200).json({ message: "Tag deleted" });
   } catch (error) {
     console.log("Error in deleteTag", error);
@@ -85,18 +99,55 @@ export const bulkAddTags = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "No tags provided" });
     }
 
-    // craete an array of tag objects
-    const tagsDoc = tags.map((tag) => ({
-      name: tag,
-      user: userId,
-    }));
+    const createdTags = [];
+    const existingTags = [];
 
-    // Insert all tags in bulk
-    const createdTags = await Tags.insertMany(tagsDoc);
+    for (const tagName of tags) {
+      // Check if tag already exists
+      const existingTag = await Tags.findOne({ name: tagName });
+      
+      if (existingTag) {
+        existingTags.push(existingTag);
+      } else {
+        // Create new tag
+        const newTag = await Tags.create({
+          name: tagName,
+          user: userId,
+        });
+        createdTags.push(newTag);
+      }
+    }
 
-    return res.status(201).json({ message: "Tags added", createdTags });
+    return res.status(201).json({ 
+      message: "Tags processed", 
+      createdTags,
+      existingTags,
+      totalProcessed: tags.length
+    });
   } catch (error) {
     console.log("Error in bulkAddTags", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Update tag usage count
+export const updateTagUsage = asyncHandler(async (req, res) => {
+  try {
+    const { tagId } = req.params;
+    const { increment = 1 } = req.body;
+
+    const tag = await Tags.findById(tagId);
+    
+    if (!tag) {
+      return res.status(404).json({ message: "Tag not found" });
+    }
+
+    tag.usageCount += increment;
+    await tag.save();
+
+    return res.status(200).json(tag);
+  } catch (error) {
+    console.log("Error in updateTagUsage", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });

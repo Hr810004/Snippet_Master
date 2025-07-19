@@ -18,6 +18,12 @@ const sendEmail = async (
   name,
   link
 ) => {
+  // Check if email credentials are configured
+  if (!process.env.USER_EMAIL || !process.env.EMAIL_PASS) {
+    console.log("Email credentials not configured");
+    throw new Error("Email service not configured");
+  }
+
   const transporter = nodeMailer.createTransport({
     service: "Outlook365",
     host: "smtp.office365.com",

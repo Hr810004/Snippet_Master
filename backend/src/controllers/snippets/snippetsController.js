@@ -24,19 +24,44 @@ export const createSnippet = asyncHandler(async (req, res) => {
       });
     }
 
-    if (!code || code.length < 30) {
+    if (!code || code.length < 10) {
       return res.status(400).json({
         message: "Code is required and should be at least 10 characters long",
       });
     }
 
-    // check if the tags are valid
-    if (
-      !tags ||
-      tags.length === 0 ||
-      !tags.every((tag) => mongoose.Types.ObjectId.isValid(tag))
-    ) {
-      return res.status(400).json({ message: "Please provide valid tags" });
+    // check if tags are provided
+    if (!tags || tags.length === 0) {
+      return res.status(400).json({ message: "Please provide at least one tag" });
+    }
+
+    // Process tags - handle both ObjectIds and string tags
+    const processedTags = [];
+    for (const tag of tags) {
+      if (mongoose.Types.ObjectId.isValid(tag)) {
+        // If it's a valid ObjectId, use it directly
+        processedTags.push(tag);
+      } else if (typeof tag === 'string' && tag.trim()) {
+        // If it's a string, try to find or create the tag
+        try {
+          const Tags = mongoose.model('Tags');
+          let existingTag = await Tags.findOne({ name: tag.trim().toLowerCase() });
+          
+          if (!existingTag) {
+            // Create new tag
+            existingTag = await Tags.create({
+              name: tag.trim().toLowerCase(),
+              user: userId,
+            });
+          }
+          processedTags.push(existingTag._id);
+        } catch (error) {
+          console.log("Error processing tag:", error);
+          return res.status(400).json({ message: `Invalid tag: ${tag}` });
+        }
+      } else {
+        return res.status(400).json({ message: `Invalid tag format: ${tag}` });
+      }
     }
 
     const snippet = new Snippet({
@@ -44,14 +69,25 @@ export const createSnippet = asyncHandler(async (req, res) => {
       description,
       code,
       language,
-      tags,
+      tags: processedTags,
       isPublic,
       user: userId,
     });
 
     await snippet.save();
 
-    return res.status(201).json(snippet);
+    // Populate user and tags for real-time broadcast
+    const populatedSnippet = await Snippet.findById(snippet._id)
+      .populate("tags", "name")
+      .populate("user", "_id name photo");
+
+    // Emit real-time event for new snippet
+    const io = req.app.get("io");
+    if (io && isPublic) {
+      io.to("public-snippets").emit("new-snippet", populatedSnippet);
+    }
+
+    return res.status(201).json(populatedSnippet);
   } catch (error) {
     console.log("Error in createSnippet", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -220,11 +256,16 @@ export const updateSnippet = asyncHandler(async (req, res) => {
     snippet.code = code || snippet.code;
     snippet.language = language || snippet.language;
     snippet.tags = tags || snippet.tags;
-    snippet.isPublic = isPublic || snippet.isPublic;
+    snippet.isPublic = isPublic !== undefined ? isPublic : snippet.isPublic;
 
     await snippet.save();
 
-    return res.status(200).json(snippet);
+    // Populate user and tags for response
+    const updatedSnippet = await Snippet.findById(snippet._id)
+      .populate("tags", "name")
+      .populate("user", "_id name photo");
+
+    return res.status(200).json(updatedSnippet);
   } catch (error) {
     console.log("Error in updateSnippet", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -261,7 +302,7 @@ export const likeSnippet = asyncHandler(async (req, res) => {
     const snippetId = req.params.id;
     const userId = req.user._id;
 
-    let snippet = await Snippet.findById(snippetId);
+    let snippet = await Snippet.findById(snippetId).populate("user", "_id name photo");
 
     if (!snippet) {
       return res.status(404).json({ message: "Snippet not found" });
@@ -269,7 +310,7 @@ export const likeSnippet = asyncHandler(async (req, res) => {
 
     // check if user has already like the snippet
     if (snippet.likedBy.includes(userId)) {
-      // unlike snipped if the user has already liked it
+      // unlike snippet if the user has already liked it
       snippet.likes -= 1;
       snippet.likedBy = snippet.likedBy.filter((id) => {
         return id.toString() !== userId.toString();
@@ -375,11 +416,9 @@ export const getLeaderboard = asyncHandler(async (req, res) => {
       },
       {
         $project: {
-          _id: 0,
+          _id: "$userInfo._id",
           name: "$userInfo.name",
           photo: "$userInfo.photo",
-          totalLikes: 1,
-          _id: "$userInfo._id",
           totalLikes: 1,
           snippetCount: 1,
           score: {

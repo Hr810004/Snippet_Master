@@ -11,6 +11,7 @@ import {
   heartOutline,
   trash,
 } from "@/utils/Icons";
+import { FaQrcode } from "react-icons/fa";
 import Image from "next/image";
 import Link from "next/link";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -19,6 +20,7 @@ import { useUserContext } from "@/context/userContext";
 import { useGlobalContext } from "@/context/globalContext";
 import { useRouter } from "nextjs-toploader/app";
 import toast from "react-hot-toast";
+import QRCode from "qrcode";
 
 interface Props {
   snippet: ISnippet;
@@ -91,6 +93,8 @@ function Snippet({ snippet, height = "400px" }: Props) {
   );
   const [likeCount, setLikeCount] = React.useState(snippet.likedBy.length);
   const [activeTag, setActiveTag] = React.useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = React.useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = React.useState("");
 
   const codeString = `${snippet?.code}`;
 
@@ -115,6 +119,47 @@ function Snippet({ snippet, height = "400px" }: Props) {
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(codeString);
     toast.success("Code copied to clipboard");
+  };
+
+  const generateQRCode = async () => {
+    try {
+      const baseUrl = window.location.origin;
+      const url = `${baseUrl}/snippet/${snippet?.title
+        .toLowerCase()
+        .split(" ")
+        .join("-")}-${snippet?._id}`;
+      
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: "#7263F3",
+          light: "#FFFFFF"
+        }
+      });
+      
+      setQrCodeDataUrl(qrDataUrl);
+      setShowShareModal(true);
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      toast.error("Failed to generate QR code");
+    }
+  };
+
+  const copySnippetLink = async () => {
+    try {
+      const baseUrl = window.location.origin;
+      const url = `${baseUrl}/snippet/${snippet?.title
+        .toLowerCase()
+        .split(" ")
+        .join("-")}-${snippet?._id}`;
+      
+      await navigator.clipboard.writeText(url);
+      toast.success("Snippet link copied to clipboard!");
+    } catch (error) {
+      console.error("Error copying link:", error);
+      toast.error("Failed to copy link");
+    }
   };
 
   return (
@@ -153,6 +198,14 @@ function Snippet({ snippet, height = "400px" }: Props) {
             onClick={copyToClipboard}
           >
             {copy}
+          </button>
+          <button
+            className="w-10 h-10 rounded-md text-green-400 text-lg flex items-center justify-center"
+            style={{ background: useBtnColorMemo }}
+            onClick={generateQRCode}
+            title="Share QR Code"
+          >
+            <FaQrcode />
           </button>
           <button
             className="w-10 h-10 rounded-md text-green-400 text-lg flex items-center justify-center"
@@ -252,6 +305,53 @@ function Snippet({ snippet, height = "400px" }: Props) {
           )}
         </div>
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-2 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">Share Snippet</h3>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex flex-col items-center gap-4">
+              <div className="bg-white p-3 rounded-lg">
+                <img 
+                  src={qrCodeDataUrl} 
+                  alt="QR Code" 
+                  className="w-48 h-48"
+                />
+              </div>
+              
+              <div className="text-center">
+                <p className="text-gray-300 mb-2">Scan to access this snippet</p>
+                <p className="text-sm text-gray-400">{snippet?.title}</p>
+              </div>
+              
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={copySnippetLink}
+                  className="flex-1 px-4 py-2 bg-[#7263F3] text-white rounded-lg hover:bg-[#6FCF97] transition-colors"
+                >
+                  Copy Link
+                </button>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,20 +6,22 @@ import { ISnippet } from "@/types/types";
 import Categories from "@/components/Categories/Categories";
 import { next, prev } from "@/utils/Icons";
 import { useEffect, useState } from "react";
+import { useRealTime } from "@/context/realTimeContext";
 
 export default function Home() {
-  const { publicSnippets, getTags, getPublicSnippets } = useSnippetContext();
+  const { publicSnippets, getTags, getPublicSnippets, setPublicSnippets } = useSnippetContext();
+  const { isConnected } = useRealTime();
   const [currentPage, setCurrentPage] = useState(1);
 
   const handlePrevious = () => {
     if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1); // Decrement the current page
+      setCurrentPage((prevPage) => prevPage - 1);
     }
   };
 
   const handleViewMore = () => {
     if (publicSnippets.length > 0 && publicSnippets.length % 10 === 0) {
-      setCurrentPage((prevPage) => prevPage + 1); // Increment the current page
+      setCurrentPage((prevPage) => prevPage + 1); 
     }
   };
 
@@ -31,6 +33,23 @@ export default function Home() {
   useEffect(() => {
     fetchSnippets();
   }, [currentPage]);
+
+  // Listen for real-time updates
+  useEffect(() => {
+    const handleNewSnippet = (event: CustomEvent<ISnippet>) => {
+      const newSnippet = event.detail;
+      // Add new snippet to the beginning of the list
+      setPublicSnippets((prev: ISnippet[]) => [newSnippet, ...prev]);
+    };
+
+    // Add event listener
+    window.addEventListener("new-snippet", handleNewSnippet as EventListener);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("new-snippet", handleNewSnippet as EventListener);
+    };
+  }, [setPublicSnippets]);
 
   return (
     <div className="">

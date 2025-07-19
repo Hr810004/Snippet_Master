@@ -14,7 +14,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   //validation
   if (!name || !email || !password) {
     // 400 Bad Request
-    res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are required" });
   }
 
   // check password length
@@ -148,7 +148,7 @@ export const getUser = asyncHandler(async (req, res) => {
     res.status(200).json(user);
   } else {
     // 404 Not Found
-    res.status(404).json({ message: "User not found" });
+    return res.status(404).json({ message: "User not found" });
   }
 });
 
@@ -160,10 +160,11 @@ export const getUserById = asyncHandler(async (req, res) => {
     if (user) {
       res.status(200).json(user);
     } else {
-      res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
     console.log("Error getting user by Id", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
@@ -197,7 +198,7 @@ export const updateUser = asyncHandler(async (req, res) => {
     });
   } else {
     // 404 Not Found
-    res.status(404).json({ message: "User not found" });
+    return res.status(404).json({ message: "User not found" });
   }
 });
 
@@ -207,15 +208,21 @@ export const userLoginStatus = asyncHandler(async (req, res) => {
 
   if (!token) {
     // 401 Unauthorized
-    res.status(401).json({ message: "Not authorized, please login!" });
+    return res.status(401).json({ message: "Not authorized, please login!" });
   }
-  // verify the token
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  
+  try {
+    // verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  if (decoded) {
-    res.status(200).json(true);
-  } else {
-    res.status(401).json(false);
+    if (decoded) {
+      res.status(200).json(true);
+    } else {
+      return res.status(401).json(false);
+    }
+  } catch (error) {
+    console.log("Token verification failed:", error);
+    return res.status(401).json({ message: "Invalid token" });
   }
 });
 

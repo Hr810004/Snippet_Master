@@ -11,6 +11,7 @@ import {
   home,
   users,
 } from "@/utils/Icons";
+import { FaExchangeAlt } from "react-icons/fa";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -32,7 +33,12 @@ function Sidebar() {
       url: "/",
       icon: home,
     },
-
+    {
+      id: 2,
+      name: isSidebarOpen ? "Converter" : "",
+      url: "/converter",
+      icon: <FaExchangeAlt />,
+    },
     {
       id: 4,
       name: isSidebarOpen ? "Popular" : "",
@@ -180,7 +186,15 @@ function Sidebar() {
             </ul>
             <p className="text-center text-sm mt-4">
               &copy; {new Date().getFullYear()}{" "}
-              <Link href={"https://harsh810.vercel.app"}>Harsh810</Link>. All&nbsp;rights reserved.
+              <a 
+                href="https://harsh810.vercel.app" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[#7263F3] hover:text-[#6FCF97] transition-colors"
+              >
+                Harsh810
+              </a>
+              . All rights reserved.
             </p>
           </footer>
         )}
