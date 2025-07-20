@@ -120,4 +120,4 @@ See [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with ❤️ for my portfolio and devlopers community.**
+**Built with ❤️ for my portfolio and developers community.**
