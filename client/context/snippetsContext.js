@@ -34,11 +34,10 @@ export const SnippetsProvider = ({ children }) => {
     try {
       const res = await axios.post(`${serverUrl}/create-snippet`, data);
 
-      setPublicSnippets([res.data, ...publicSnippets]);
+      // Add the new snippet to the beginning of the list
+      setPublicSnippets(prevSnippets => [res.data, ...prevSnippets]);
 
       emitSnippetCreated(res.data);
-
-      getPublicSnippets();
 
       toast.success("Snippet created successfully");
 
@@ -51,9 +50,15 @@ export const SnippetsProvider = ({ children }) => {
 
   const updateSnippet = async (data) => {
     try {
-      await axios.patch(`${serverUrl}/snippet/${data._id}`, data);
+      const res = await axios.patch(`${serverUrl}/snippet/${data._id}`, data);
 
-      getPublicSnippets();
+      // Update the snippet in the local state
+      setPublicSnippets(prevSnippets => 
+        prevSnippets.map(snippet => 
+          snippet._id === data._id ? res.data : snippet
+        )
+      );
+
       toast.success("Snippet updated successfully");
     } catch (error) {
       console.log("Error updating snippet", error);
@@ -189,8 +194,13 @@ export const SnippetsProvider = ({ children }) => {
   const deleteSnippet = async (id) => {
     try {
       await axios.delete(`${serverUrl}/snippet/${id}`);
+      
+      // Remove the snippet from the local state
+      setPublicSnippets(prevSnippets => 
+        prevSnippets.filter(snippet => snippet._id !== id)
+      );
+      
       toast.success("Snippet deleted successfully");
-      getPublicSnippets();
     } catch (error) {
       console.log("Error deleting snippet", error);
       toast.error(error.response.data.message);
@@ -290,6 +300,50 @@ export const SnippetsProvider = ({ children }) => {
     getTags();
     getLeaderboard();
     getPopularSnippets();
+  }, []);
+
+  // Listen for real-time snippet updates
+  useEffect(() => {
+    const handleNewSnippet = (event) => {
+      const newSnippet = event.detail;
+      // Check if snippet already exists to prevent duplicates
+      setPublicSnippets(prevSnippets => {
+        const exists = prevSnippets.some(snippet => snippet._id === newSnippet._id);
+        if (exists) {
+          return prevSnippets; // Don't add if already exists
+        }
+        return [newSnippet, ...prevSnippets];
+      });
+    };
+
+    const handleSnippetUpdated = (event) => {
+      const updatedSnippet = event.detail;
+      // Update the snippet in the list
+      setPublicSnippets(prevSnippets => 
+        prevSnippets.map(snippet => 
+          snippet._id === updatedSnippet._id ? updatedSnippet : snippet
+        )
+      );
+    };
+
+    const handleSnippetDeleted = (event) => {
+      const deletedSnippetId = event.detail;
+      // Remove the snippet from the list
+      setPublicSnippets(prevSnippets => 
+        prevSnippets.filter(snippet => snippet._id !== deletedSnippetId)
+      );
+    };
+
+    // Listen for the custom events dispatched by realTimeContext
+    window.addEventListener("new-snippet", handleNewSnippet);
+    window.addEventListener("snippet-updated", handleSnippetUpdated);
+    window.addEventListener("snippet-deleted", handleSnippetDeleted);
+
+    return () => {
+      window.removeEventListener("new-snippet", handleNewSnippet);
+      window.removeEventListener("snippet-updated", handleSnippetUpdated);
+      window.removeEventListener("snippet-deleted", handleSnippetDeleted);
+    };
   }, []);
 
   console.log("Leaderboard", leaderboard);

@@ -265,6 +265,12 @@ export const updateSnippet = asyncHandler(async (req, res) => {
       .populate("tags", "name")
       .populate("user", "_id name photo");
 
+    // Emit real-time event for snippet update if it's public
+    const io = req.app.get("io");
+    if (io && updatedSnippet.isPublic) {
+      io.to("public-snippets").emit("snippet-updated", updatedSnippet);
+    }
+
     return res.status(200).json(updatedSnippet);
   } catch (error) {
     console.log("Error in updateSnippet", error);
@@ -285,6 +291,12 @@ export const deleteSnippet = asyncHandler(async (req, res) => {
 
     if (!snippet) {
       return res.status(404).json({ message: "Snippet not found" });
+    }
+
+    // Emit real-time event for snippet deletion if it was public
+    const io = req.app.get("io");
+    if (io && snippet.isPublic) {
+      io.to("public-snippets").emit("snippet-deleted", snippetId);
     }
 
     await Snippet.deleteOne({ _id: snippetId });

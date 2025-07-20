@@ -32,22 +32,8 @@ export default function Home() {
     fetchSnippets();
   }, [currentPage]);
 
-  // Listen for real-time updates
-  useEffect(() => {
-    const handleNewSnippet = (event: CustomEvent<ISnippet>) => {
-      const newSnippet = event.detail;
-      // Add new snippet to the beginning of the list
-      setPublicSnippets((prev: ISnippet[]) => [newSnippet, ...prev]);
-    };
-
-    // Add event listener
-    window.addEventListener("new-snippet", handleNewSnippet as EventListener);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("new-snippet", handleNewSnippet as EventListener);
-    };
-  }, [setPublicSnippets]);
+  // Note: Real-time updates are handled by the SnippetsContext
+  // No need for duplicate listeners here
 
   return (
     <div className="">
