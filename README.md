@@ -201,3 +201,7 @@ The source code and features of this project are the intellectual property of Ha
 ## 📝 License
 
 This project is licensed under a custom, restrictive license. See the [LICENSE](LICENSE) file for details.
+
+---
+
+**Built with ❤️ for my portfolio and developers community.**
