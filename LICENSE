@@ -1,28 +1,12 @@
 Copyright (c) 2024 Snippy - Code Snippet Sharing Platform. All rights reserved.
 
-This software and associated documentation files (the "Software") are the 
-proprietary and confidential information of Snippy. 
+You are permitted to visit and use the deployed Snippy platform as an end user.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+The source code in this repository is proprietary and confidential. The following restrictions apply:
 
-RESTRICTIONS:
-- This code is for educational and personal use only
-- Commercial use is strictly prohibited without proper permission
-- Copying, distribution, or modification of this code is not allowed without proper permission
-- This code may not be used in production environments without explicit written permission
-- Reverse engineering or attempting to derive source code is prohibited
-- Any use beyond educational/personal purposes requires written consent
+You may not copy, reuse, modify, distribute, or use any part of the codebase without explicit written permission from the copyright holder.
+Commercial and non-commercial use of the code is prohibited without prior written consent.
+Reverse engineering or attempting to derive the source code for any purpose is strictly prohibited.
+You may not use this codebase as a reference for your own projects without permission.
+For any licensing inquiries or to request permission for code use, please contact the copyright holder.
 
-PERMISSIONS:
-- Educational and personal use is permitted
-- Viewing and studying the code for learning purposes is allowed
-- Proper attribution must be given when referencing this code
-
-For licensing inquiries or to request permission for commercial/production use, 
-please contact the copyright holder with detailed information about your intended use. 
