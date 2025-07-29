@@ -173,25 +173,6 @@ By using Snippet Master, you agree to our terms of service and privacy policy. Y
 
 ---
 
-## 📸 Screenshots
-
-Below are example screenshots for each major feature. Replace the image paths with your actual screenshot files in the `public/` directory.
-
-| Feature                        | Screenshot                                      |
-|--------------------------------|-------------------------------------------------|
-| Dashboard                      | ![Dashboard](client/public/logo.png)            |
-| Snippet Creation               | ![Snippet Creation](client/public/logo.png)     |
-| AI Code Analysis               | ![AI Analysis](client/public/logo.png)          |
-| QR Code Sharing                | ![QR Sharing](client/public/glass-bg.png)       |
-| Real-time Updates              | ![Real-time](client/public/glass-bg.png)        |
-| Search & Discovery             | ![Search](client/public/flurry.png)             |
-| User Profiles                  | ![Profiles](client/public/logo.png)             |
-| Leaderboard                    | ![Leaderboard](client/public/glass-bg.png)      |
-| Mobile Responsive              | ![Mobile](client/public/glass-bg.png)           |
-| Dark Mode                      | ![Dark Mode](client/public/logo.png)            |
-
----
-
 ## ⚠️ Intellectual Property Notice
 
 The source code and features of this project are the intellectual property of Harsh810. Copying, modifying, or reusing any part of this code or its features is strictly prohibited.
