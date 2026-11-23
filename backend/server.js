@@ -7,6 +7,9 @@ import fs from "node:fs";
 import errorHandler from "./src/helpers/errorhandler.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import { registerCollabHandlers } from "./src/helpers/collabSocket.js";
 
 dotenv.config();
 
@@ -15,21 +18,88 @@ const port = process.env.PORT || 8000;
 const app = express();
 const server = createServer(app);
 
+// CORS configuration supporting single/multiple origins and Vercel deployments
+const configuredOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map((url) => url.trim().replace(/\/$/, ""))
+  : [];
+
+const allowedOrigins = [
+  ...configuredOrigins,
+  "https://snippet-master-sepia.vercel.app",
+  "https://snippet-master-one.vercel.app",
+  "http://localhost:3000",
+].filter(Boolean);
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // allow curl, mobile apps, server-to-server
+  const clean = origin.replace(/\/$/, "");
+  return (
+    allowedOrigins.includes(clean) ||
+    clean.endsWith(".vercel.app") ||
+    clean.includes("localhost") ||
+    clean.includes("127.0.0.1")
+  );
+};
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With"],
+};
+
 // Socket.IO setup
 const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
-// middleware
+// behind Render/Vercel proxies: needed so rate limiting sees the real client IP
+app.set("trust proxy", 1);
+
+// security headers (API is called cross-origin from the Vercel frontend)
 app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true,
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false,
   })
 );
+
+// rate limiting: strict for credential endpoints, relaxed for the rest
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many attempts, please try again in a few minutes" },
+});
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many requests, please slow down" },
+});
+app.use(
+  [
+    "/api/v1/login",
+    "/api/v1/register",
+    "/api/v1/auth",
+    "/api/v1/forgot-password",
+    "/api/v1/reset-password",
+    "/api/v1/shared",
+  ],
+  authLimiter
+);
+app.use("/api", apiLimiter);
+
+// middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -37,6 +107,9 @@ app.use(cookieParser());
 // Socket.IO connection handling
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
+
+  // live collaborative editing (Yjs updates relayed per room)
+  registerCollabHandlers(io, socket);
 
   // Join user to their personal room
   socket.on("join-user-room", (userId) => {

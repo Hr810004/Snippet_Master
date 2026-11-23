@@ -1,11 +1,15 @@
 "use client";
 import React, { useState } from "react";
+import GlassSelect from "@/components/GlassSelect/GlassSelect";
 import { FaExchangeAlt, FaCopy, FaDownload } from "react-icons/fa";
 import toast from "react-hot-toast";
 import SyntaxHighlighter from "react-syntax-highlighter";
-import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { vs, vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { useTheme } from "@/context/themeContext";
+import { API_URL } from "@/utils/apiConfig";
 
 const CodeConverter = () => {
+  const { theme } = useTheme();
   const [sourceCode, setSourceCode] = useState("");
   const [convertedCode, setConvertedCode] = useState("");
   const [sourceLanguage, setSourceLanguage] = useState("javascript");
@@ -48,7 +52,7 @@ const CodeConverter = () => {
 
   const convertCodeWithGemini = async (code: string, from: string, to: string) => {
     try {
-      const response = await fetch("https://snippet-master-harsh810.onrender.com/api/v1/convert-code", {
+      const response = await fetch(`${API_URL}/convert-code`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -133,17 +137,13 @@ const CodeConverter = () => {
           <div className="bg-2 p-6 rounded-lg border border-rgba-3">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-white">Source Code</h2>
-              <select
+              <GlassSelect
                 value={sourceLanguage}
-                onChange={(e) => setSourceLanguage(e.target.value)}
+                onChange={setSourceLanguage}
+                options={languages}
+                ariaLabel="Source language"
                 className="px-3 py-1 bg-1 text-white rounded border border-rgba-3"
-              >
-                {languages.map((lang) => (
-                  <option key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             
             <div className="relative">
@@ -168,17 +168,13 @@ const CodeConverter = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-white">Converted Code</h2>
               <div className="flex items-center gap-2">
-                <select
+                <GlassSelect
                   value={targetLanguage}
-                  onChange={(e) => setTargetLanguage(e.target.value)}
+                  onChange={setTargetLanguage}
+                  options={languages}
+                  ariaLabel="Target language"
                   className="px-3 py-1 bg-1 text-white rounded border border-rgba-3"
-                >
-                  {languages.map((lang) => (
-                    <option key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </option>
-                  ))}
-                </select>
+                />
                 {convertedCode && (
                   <button
                     onClick={() => downloadCode(convertedCode, targetLanguage)}
@@ -196,11 +192,11 @@ const CodeConverter = () => {
                 <div className="relative">
                   <SyntaxHighlighter
                     language={targetLanguage}
-                    style={vs2015}
+                    style={theme === "light" ? vs : vs2015}
                     customStyle={{
                       height: "320px",
                       fontSize: "14px",
-                      background: "#1a1a1a",
+                      background: theme === "light" ? "#f8f9fc" : "#1a1a1a",
                       borderRadius: "8px",
                     }}
                   >

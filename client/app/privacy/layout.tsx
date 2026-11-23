@@ -12,7 +12,7 @@ function layout({ children }: Props) {
         <p className="text-center">
           &copy; {new Date().getFullYear()}{" "}
           <a 
-            href="https://harsh810.vercel.app" 
+            href="https://harsh810.vercel.app/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-[#7263F3] hover:text-[#6FCF97] transition-colors"

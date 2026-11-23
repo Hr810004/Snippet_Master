@@ -11,7 +11,23 @@ import {
   heartOutline,
   trash,
 } from "@/utils/Icons";
-import { FaQrcode, FaRobot } from "react-icons/fa";
+import {
+  FaQrcode,
+  FaRobot,
+  FaCodeBranch,
+  FaHistory,
+  FaShareAlt,
+  FaFolderPlus,
+  FaCamera,
+  FaUsers,
+} from "react-icons/fa";
+import axios from "axios";
+import { API_URL } from "@/utils/apiConfig";
+import VersionHistoryModal from "@/components/VersionHistory/VersionHistoryModal";
+import ShareLinkModal from "@/components/ShareLinks/ShareLinkModal";
+import AddToCollectionModal from "@/components/Collections/AddToCollectionModal";
+import ScreenshotModal from "@/components/Screenshot/ScreenshotModal";
+import LineComments, { ILineComment } from "@/components/LineComments/LineComments";
 import Image from "next/image";
 import Link from "next/link";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -21,10 +37,15 @@ import { useGlobalContext } from "@/context/globalContext";
 import { useRouter } from "nextjs-toploader/app";
 import toast from "react-hot-toast";
 import QRCode from "qrcode";
+import { useTheme } from "@/context/themeContext";
 
 interface Props {
   snippet: ISnippet;
   height?: string;
+  // show line-by-line review comments (snippet detail page only)
+  enableComments?: boolean;
+  // called after a version restore so the parent can show the new content
+  onUpdated?: (snippet: ISnippet) => void;
 }
 
 const languageLogo = (language: string) => {
@@ -74,7 +95,7 @@ const languageLogo = (language: string) => {
   }
 };
 
-function Snippet({ snippet, height = "400px" }: Props) {
+function Snippet({ snippet, height = "300px", enableComments = false, onUpdated }: Props) {
   const userId = useUserContext().user?._id;
   const {
     useBtnColorMemo,
@@ -84,6 +105,7 @@ function Snippet({ snippet, height = "400px" }: Props) {
     getPublicSnippets,
   } = useSnippetContext();
   const { openModalForEdit } = useGlobalContext();
+  const { theme } = useTheme();
 
   const router = useRouter();
 
@@ -95,6 +117,69 @@ function Snippet({ snippet, height = "400px" }: Props) {
   const [activeTag, setActiveTag] = React.useState<string | null>(null);
   const [showShareModal, setShowShareModal] = React.useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = React.useState("");
+  const [showHistory, setShowHistory] = React.useState(false);
+  const [showShare, setShowShare] = React.useState(false);
+  const [showCollection, setShowCollection] = React.useState(false);
+  const [showScreenshot, setShowScreenshot] = React.useState(false);
+  const [selectedLine, setSelectedLine] = React.useState<number | null>(null);
+  const [lineComments, setLineComments] = React.useState<ILineComment[]>([]);
+
+  useEffect(() => {
+    if (!enableComments) return;
+    (async () => {
+      try {
+        const res = await axios.get(`${API_URL}/snippet/${snippet._id}/comments`, {
+          withCredentials: true,
+        });
+        setLineComments(res.data);
+      } catch (error) {
+        // comments are optional, the snippet still renders
+      }
+    })();
+  }, [enableComments, snippet._id]);
+
+  const forkSnippet = async () => {
+    if (!userId) {
+      return router.push("/login");
+    }
+    try {
+      await axios.post(`${API_URL}/snippet/${snippet._id}/fork`, {}, { withCredentials: true });
+      toast.success("Forked! It is saved as a private snippet in your account");
+      router.push("/snippets");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Could not fork snippet");
+    }
+  };
+
+  const startLiveSession = async () => {
+    try {
+      const res = await axios.post(
+        `${API_URL}/snippet/${snippet._id}/collab`,
+        {},
+        { withCredentials: true }
+      );
+      router.push(`/collab/${res.data.token}`);
+    } catch (error: any) {
+      toast.error(
+        error.response?.status === 404 && typeof error.response?.data !== "object"
+          ? "Live editing is not available on this server yet. Deploy the latest backend first."
+          : error.response?.data?.message || "Could not start a live session"
+      );
+    }
+  };
+
+  const openCollections = () => {
+    if (!userId) return router.push("/login");
+    setShowCollection(true);
+  };
+
+  const snippetUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/snippet/${snippet?.title
+          .toLowerCase()
+          .split(" ")
+          .join("-")}-${snippet?._id}`
+      : "";
 
   const codeString = `${snippet?.code}`;
 
@@ -163,21 +248,21 @@ function Snippet({ snippet, height = "400px" }: Props) {
   };
 
   return (
-    <div className="shadow-sm flex flex-col border-2 border-rgba-3 rounded-lg">
-      <div className="px-6 py-4 bg-4 flex items-center justify-between rounded-t-lg border-b-2 border-rgba-3">
+    <div className="glass-card shadow-sm flex flex-col border-2 border-rgba-3 rounded-lg">
+      <div className="px-5 py-3 bg-4 flex flex-wrap items-center justify-between gap-3 rounded-t-lg border-b-2 border-rgba-3">
         <Link
           href={`/user/${snippet?.user?.name
             ?.toLowerCase()
             .split(" ")
             .join("-")}-${snippet?.user?._id}`}
-          className="group transition-all ease-in-out duration-200"
+          className="group min-w-0 transition-all ease-in-out duration-200"
         >
           <div className="flex items-center">
             <Image
               src={snippet?.user?.photo || "/image--useruser.png"}
               alt="user"
-              width={40}
-              height={40}
+              width={34}
+              height={34}
               className="rounded-full"
             />
             <h3 className="ml-2 text-gray-300 font-semibold group-hover:text-green-400">
@@ -191,16 +276,16 @@ function Snippet({ snippet, height = "400px" }: Props) {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2 text-gray-200">
+        <div className="flex flex-wrap items-center gap-2 text-gray-200">
           <button
-            className="w-10 h-10 rounded-md text-green-400 text-lg flex items-center justify-center"
+            className="card-btn w-9 h-9 rounded-md text-green-400 text-lg flex items-center justify-center"
             style={{ background: useBtnColorMemo }}
             onClick={copyToClipboard}
           >
             {copy}
           </button>
           <button
-            className="w-10 h-10 rounded-md text-green-400 text-lg flex items-center justify-center"
+            className="card-btn w-9 h-9 rounded-md text-green-400 text-lg flex items-center justify-center"
             style={{ background: useBtnColorMemo }}
             onClick={generateQRCode}
             title="Share QR Code"
@@ -208,7 +293,7 @@ function Snippet({ snippet, height = "400px" }: Props) {
             <FaQrcode />
           </button>
           <button
-            className="w-10 h-10 rounded-md text-green-400 text-lg flex items-center justify-center"
+            className="card-btn w-9 h-9 rounded-md text-green-400 text-lg flex items-center justify-center"
             style={{ background: useBtnColorMemo }}
           >
             {bookmarkEmpty}
@@ -220,13 +305,37 @@ function Snippet({ snippet, height = "400px" }: Props) {
               .join("-")}-${snippet?._id}`}
           >
             <button
-              className="w-10 h-10 rounded-md text-[#7263F3] text-lg flex items-center justify-center hover:text-[#6BBE92] transition-colors"
+              className="card-btn w-9 h-9 rounded-md text-[#7263F3] text-lg flex items-center justify-center hover:text-[#6BBE92] transition-colors"
               style={{ background: useBtnColorMemo }}
               title="AI Analysis"
             >
               <FaRobot />
             </button>
           </Link>
+          <button
+            className="card-btn w-9 h-9 rounded-md text-green-400 text-lg flex items-center justify-center"
+            style={{ background: useBtnColorMemo }}
+            onClick={forkSnippet}
+            title="Fork this snippet"
+          >
+            <FaCodeBranch />
+          </button>
+          <button
+            className="card-btn w-9 h-9 rounded-md text-yellow-500 text-lg flex items-center justify-center"
+            style={{ background: useBtnColorMemo }}
+            onClick={openCollections}
+            title="Save to collection"
+          >
+            <FaFolderPlus />
+          </button>
+          <button
+            className="card-btn w-9 h-9 rounded-md text-pink-400 text-lg flex items-center justify-center"
+            style={{ background: useBtnColorMemo }}
+            onClick={() => setShowScreenshot(true)}
+            title="Export as image"
+          >
+            <FaCamera />
+          </button>
         </div>
       </div>
 
@@ -234,10 +343,29 @@ function Snippet({ snippet, height = "400px" }: Props) {
         <SyntaxHighlighter
           language={snippet?.language}
           showLineNumbers={true}
-          style={vs2015}
+          wrapLines={enableComments}
+          lineProps={
+            enableComments
+              ? (lineNumber: number) => ({
+                  style: {
+                    display: "block",
+                    cursor: "pointer",
+                    borderLeft: lineComments.some((c) => c.line === lineNumber)
+                      ? "3px solid #7263F3"
+                      : "3px solid transparent",
+                    background:
+                      selectedLine === lineNumber
+                        ? "rgba(114,99,243,0.18)"
+                        : undefined,
+                  },
+                  onClick: () => setSelectedLine(lineNumber),
+                })
+              : undefined
+          }
+          style={theme === "light" ? vs : vs2015}
           customStyle={{
-            fontSize: "1.2rem",
-            background: "#181818",
+            fontSize: enableComments ? "1.05rem" : "0.9rem",
+            background: theme === "light" ? "#f8f9fc" : "#181818",
             borderRadius: "0 0 6px 6px",
             height: height,
             scrollbarWidth: "none",
@@ -248,7 +376,19 @@ function Snippet({ snippet, height = "400px" }: Props) {
         </SyntaxHighlighter>
       </div>
 
-      <div className="flex-1 px-6 py-2 bg-4 rounded-b-lg border-t-2 border-rgba-3">
+      {enableComments && (
+        <LineComments
+          snippetId={snippet._id}
+          snippetOwnerId={snippet.user?._id}
+          currentUserId={userId}
+          selectedLine={selectedLine}
+          comments={lineComments}
+          onChange={setLineComments}
+          onSelectLine={setSelectedLine}
+        />
+      )}
+
+      <div className="flex-1 px-5 py-1.5 bg-4 rounded-b-lg border-t-2 border-rgba-3">
         <div className="flex justify-between gap-2">
           <div className="flex-1 flex flex-col">
             <Link
@@ -264,11 +404,25 @@ function Snippet({ snippet, height = "400px" }: Props) {
                   height={20}
                   alt="programming language"
                 />
-                <h2 className="text-xl font-semibold text-gray-300 cursor-pointer hover:text-green-400 hover:underline transition-all ease-in-out duration-300">
+                <h2 className="text-lg font-semibold text-gray-300 cursor-pointer hover:text-green-400 hover:underline transition-all ease-in-out duration-300">
                   {snippet?.title}
                 </h2>
               </div>
             </Link>
+            {snippet?.forkedFrom && (
+              <p className="text-sm text-gray-400 flex items-center gap-1">
+                <FaCodeBranch /> forked from{" "}
+                <Link
+                  href={`/snippet/${snippet.forkedFrom.title
+                    .toLowerCase()
+                    .split(" ")
+                    .join("-")}-${snippet.forkedFrom._id}`}
+                  className="text-[#7263F3] hover:underline"
+                >
+                  {snippet.forkedFrom.title}
+                </Link>
+              </p>
+            )}
             <p className="pb-1 text-gray-400">{snippet?.description}</p>
           </div>
           <button
@@ -284,7 +438,7 @@ function Snippet({ snippet, height = "400px" }: Props) {
             </span>
           </button>
         </div>
-        <div className="pt-2 pb-3 flex justify-between">
+        <div className="pt-1 pb-2 flex justify-between">
           <ul className="items-start flex gap-2 flex-wrap">
             {snippet?.tags.map((tag) => {
               return (
@@ -302,14 +456,38 @@ function Snippet({ snippet, height = "400px" }: Props) {
           {snippet.user?._id === userId && (
             <div className="flex gap-2">
               <button
-                className="w-10 h-10 flex items-center justify-center text-blue-400 text-xl rounded-md"
+                className="card-btn w-9 h-9 flex items-center justify-center text-sky-400 text-lg rounded-md"
+                style={{ background: useBtnColorMemo }}
+                onClick={startLiveSession}
+                title="Edit together live"
+              >
+                <FaUsers />
+              </button>
+              <button
+                className="card-btn w-9 h-9 flex items-center justify-center text-yellow-500 text-lg rounded-md"
+                style={{ background: useBtnColorMemo }}
+                onClick={() => setShowHistory(true)}
+                title="Version history"
+              >
+                <FaHistory />
+              </button>
+              <button
+                className="card-btn w-9 h-9 flex items-center justify-center text-[#6BBE92] text-lg rounded-md"
+                style={{ background: useBtnColorMemo }}
+                onClick={() => setShowShare(true)}
+                title="Share link / embed"
+              >
+                <FaShareAlt />
+              </button>
+              <button
+                className="card-btn w-9 h-9 flex items-center justify-center text-blue-400 text-xl rounded-md"
                 style={{ background: useBtnColorMemo }}
                 onClick={() => openModalForEdit(snippet)}
               >
                 {edit}
               </button>
               <button
-                className="w-10 h-10 flex items-center justify-center text-red-500 text-xl rounded-md"
+                className="card-btn w-9 h-9 flex items-center justify-center text-red-500 text-xl rounded-md"
                 style={{ background: useBtnColorMemo }}
                 onClick={() => deleteSnippet(snippet._id)}
               >
@@ -319,6 +497,31 @@ function Snippet({ snippet, height = "400px" }: Props) {
           )}
         </div>
       </div>
+
+      {showHistory && (
+        <VersionHistoryModal
+          snippet={snippet}
+          onClose={() => setShowHistory(false)}
+          onRestored={(restored) =>
+            onUpdated ? onUpdated(restored) : window.location.reload()
+          }
+        />
+      )}
+      {showShare && (
+        <ShareLinkModal snippet={snippet} onClose={() => setShowShare(false)} />
+      )}
+      {showCollection && (
+        <AddToCollectionModal
+          snippet={snippet}
+          onClose={() => setShowCollection(false)}
+        />
+      )}
+      {showScreenshot && (
+        <ScreenshotModal
+          snippet={snippet}
+          onClose={() => setShowScreenshot(false)}
+        />
+      )}
 
       {/* Share Modal */}
       {showShareModal && (
@@ -335,7 +538,7 @@ function Snippet({ snippet, height = "400px" }: Props) {
             </div>
             
             <div className="flex flex-col items-center gap-4">
-              <div className="bg-white p-3 rounded-lg">
+              <div className="qr-card bg-white p-3 rounded-lg">
                 <img 
                   src={qrCodeDataUrl} 
                   alt="QR Code" 
@@ -348,18 +551,19 @@ function Snippet({ snippet, height = "400px" }: Props) {
                 <p className="text-sm text-gray-400">{snippet?.title}</p>
               </div>
               
-              <div className="flex gap-2 w-full">
+              <div className="flex items-center gap-2 w-full">
+                <input
+                  readOnly
+                  value={snippetUrl}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="link-field flex-1 min-w-0 px-3 py-2 rounded-lg border border-rgba-3 bg-1 text-sm outline-none"
+                />
                 <button
                   onClick={copySnippetLink}
-                  className="flex-1 px-4 py-2 bg-[#7263F3] text-white rounded-lg hover:bg-[#6FCF97] transition-colors"
+                  title="Copy link"
+                  className="w-10 h-10 shrink-0 flex items-center justify-center rounded-lg bg-[#7263F3] text-white text-lg hover:bg-[#6FCF97] transition-colors"
                 >
-                  Copy Link
-                </button>
-                <button
-                  onClick={() => setShowShareModal(false)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  Close
+                  {copy}
                 </button>
               </div>
             </div>

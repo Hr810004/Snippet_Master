@@ -41,18 +41,40 @@
   - **JWT-Based Authentication:** Secure user registration, login, and session management.
   - **Email Verification:** Robust email verification system for account security.
   - **Password Reset:** Secure password recovery via email with token-based validation.
-  - **Profile Management:** Update personal information, bio, social links, and profile pictures with Cloudinary integration.
+  - **Profile Management:** Update personal information, bio, social links, and profile pictures (stored in MongoDB).
 
 - **Modern Dashboard & Analytics**
   - **Personal Dashboard:** Overview of your snippets, favorites, and community activity.
   - **Performance Analytics:** Track snippet popularity, views, and engagement metrics.
-  - **Dark Mode Support:** Beautiful dark theme for comfortable coding sessions.
+  - **Dark and Light Themes:** iOS-style glass look in both themes.
   - **Accessibility Features:** WCAG compliant design for inclusive user experience.
 
-- **File Management & Cloud Integration**
-  - **Cloudinary Integration:** Secure file uploads for profile pictures and media content.
-  - **Image Optimization:** Automatic image compression and optimization for better performance.
-  - **CDN Delivery:** Fast, global content delivery for uploaded assets.
+- **Profile Pictures**
+  - **MongoDB Storage:** Pictures are stored in the database, no external image service needed.
+  - **Automatic Resizing:** Photos are cropped and compressed in the browser before upload.
+
+---
+
+- **Developer Workflow Features** (see [NEW_FEATURES_SETUP.md](NEW_FEATURES_SETUP.md))
+  - **Version History + Rollback:** Every edit is saved; compare any version to the current code with a line diff and restore it.
+  - **Fork Snippets:** Copy a public snippet to your account with a "forked from" link.
+  - **Inline Line Comments:** Click a line of code to leave a review-style comment.
+  - **Private Share Links:** Time-limited and optionally password-protected links.
+  - **Embeddable Widget:** Drop a snippet into a blog or docs with an iframe.
+  - **GitHub Gist Import / Export:** Move snippets to and from GitHub Gists via GitHub's REST API.
+  - **Light / Dark Theme:** One-click toggle, remembered per browser.
+  - **iOS Glass UI:** Frosted-glass surfaces over a soft gradient, in both the dark and light theme, with animated sidebar and custom glass dropdowns.
+  - **Smarter Snippet Form:** One click fills the title, description and tags from your code with AI; code files can be opened or dropped onto the editor (the language follows the file type); type your own tags and pick collections right in the form; unfinished snippets are kept as a draft you can restore.
+  - **Collections:** Group snippets into folders such as "React hooks"; one snippet can live in several collections.
+  - **Full-Text Search:** The search box matches title, description, code and language.
+  - **Live Collaboration:** Start a session link on your own snippet and edit it together in real time (Yjs CRDT over Socket.IO); the owner saves the result back.
+  - **Export as Image:** Turn a snippet into a styled PNG (backgrounds, dark or light code) for sharing.
+  - **VS Code Extension:** Save the selected code and search or insert snippets from the editor (`tools/vscode-extension`), signed in with a personal access token.
+
+- **Stronger Authentication**
+  - **Google Sign-In (OAuth 2.0 / OpenID Connect):** Register and log in with a Google account.
+  - **2-Step Login Verification:** Optional emailed 6-digit code after the password.
+  - **Hardening:** helmet security headers and rate limiting on credential endpoints.
 
 ---
 
@@ -60,11 +82,10 @@
 
 - **Frontend:** Next.js 14, React 18, TypeScript, TailwindCSS
 - **Backend:** Node.js, Express.js, MongoDB with Mongoose
-- **Real-Time:** Socket.IO for live updates and collaboration
-- **AI Integration:** Google Generative AI for code analysis and documentation
+- **Real-Time:** Socket.IO for live updates; Yjs (CRDT) for collaborative editing
+- **AI Integration:** Google Gemini free-tier flash models (gemini-3.x) for code analysis, documentation and conversion
 - **Authentication:** JWT tokens with bcrypt password hashing
-- **File Storage:** Cloudinary for image uploads and management
-- **Email Services:** Nodemailer with Handlebars templates
+- **Email Services:** Handlebars templates sent through the Brevo API (SMTP via Nodemailer as fallback)
 - **UI Components:** Radix UI, Lucide React icons, Framer Motion
 - **Code Highlighting:** React Syntax Highlighter with 50+ language support
 - **QR Code Generation:** QRCode library for snippet sharing
@@ -82,13 +103,15 @@ Create a `.env` file in the backend directory and add:
 ```env
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 GOOGLE_AI_API_KEY=your_google_ai_api_key
 EMAIL_USER=your_email_address
 EMAIL_PASS=your_email_password
 FRONTEND_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_oauth_client_id          # Google Sign-In (optional)
+BREVO_API_KEY=your_brevo_api_key                      # emails over HTTPS (works on Render), optional
+BREVO_SENDER_EMAIL=your_verified_brevo_sender         # must be verified in Brevo
+# GEMINI_API_KEY can be used instead of GOOGLE_AI_API_KEY
+# GEMINI_MODELS=gemini-3.8-flash,gemini-3.6-flash      # optional override, see NEW_FEATURES_SETUP.md
 ```
 
 ### 2. Install Dependencies
@@ -138,7 +161,7 @@ npm run dev
 
 ## 🙌 Credits
 
-Built by [Harsh810](https://harsh810.vercel.app) – A comprehensive code snippet management solution for modern developers.
+Built by [Harsh810](https://harsh810.vercel.app/) – A comprehensive code snippet management solution for modern developers.
 
 ---
 

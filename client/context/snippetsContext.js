@@ -12,13 +12,14 @@ import toast from "react-hot-toast";
 import { useGlobalContext } from "./globalContext";
 import { useUserContext } from "./userContext";
 import { useRealTime } from "./realTimeContext";
+import { API_URL } from "../utils/apiConfig";
 
 const SnippetsContext = createContext();
 
 export const SnippetsProvider = ({ children }) => {
   const { closeModal } = useGlobalContext();
   const { emitSnippetCreated } = useRealTime();
-  const serverUrl = "https://snippet-master-harsh810.onrender.com/api/v1";
+  const serverUrl = API_URL;
 
   const userId = useUserContext().user?._id;
 
@@ -42,9 +43,13 @@ export const SnippetsProvider = ({ children }) => {
       toast.success("Snippet created successfully");
 
       closeModal();
+
+      // callers (the add-snippet form) need the new snippet, e.g. to put it in collections
+      return res.data;
     } catch (error) {
       console.log("Error creating snippet", error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Could not create the snippet");
+      return null;
     }
   };
 
