@@ -9,7 +9,7 @@ leaving the editor. No dependencies.
    right away, it is shown once.
 2. Open this folder in VS Code and press **F5** to start an Extension Development Host.
 3. In that window open Settings, search "Snippet Master" and set:
-   - `snippetMaster.apiUrl`: your backend, for example `https://snippet-master.onrender.com/api/v1`
+   - `snippetMaster.apiUrl`: your backend, for example `https://snippet-master-harsh810.onrender.com/api/v1`
    - `snippetMaster.token`: the token from step 1
 
 ## Use

@@ -1,5 +1,5 @@
 // host of the backend that serves profile pictures (/api/v1/user/:id/photo)
-let apiHost = "snippet-master.onrender.com";
+let apiHost = "snippet-master-harsh810.onrender.com";
 try {
   const raw = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (raw) apiHost = new URL(raw).hostname;

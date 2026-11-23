@@ -23,7 +23,7 @@
       "properties": {
         "snippetMaster.apiUrl": {
           "type": "string",
-          "default": "https://snippet-master.onrender.com/api/v1",
+          "default": "https://snippet-master-harsh810.onrender.com/api/v1",
           "description": "Backend API URL, ends with /api/v1"
         },
         "snippetMaster.token": {
